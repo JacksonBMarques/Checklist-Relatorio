@@ -304,7 +304,7 @@ function makeStyles(colors: ReturnType<typeof useColors>, insets: ReturnType<typ
       backgroundColor: colors.card,
       borderRadius: 12,
       flexDirection: "row",
-      alignItems: "center",
+      alignItems: "stretch",
       borderWidth: 1,
       borderColor: colors.border,
       shadowColor: "#000",
@@ -319,6 +319,7 @@ function makeStyles(colors: ReturnType<typeof useColors>, insets: ReturnType<typ
       flexDirection: "row",
       alignItems: "center",
       padding: 16,
+      minHeight: 84,
     },
     cardLeft: {
       flex: 1,
@@ -375,7 +376,6 @@ function makeStyles(colors: ReturnType<typeof useColors>, insets: ReturnType<typ
     },
     deleteBtn: {
       width: 48,
-      height: "100%" as any,
       alignItems: "center",
       justifyContent: "center",
       borderLeftWidth: 1,
