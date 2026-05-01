@@ -16,6 +16,8 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useChecklist, Report } from "@/context/ChecklistContext";
+import { useSettings } from "@/context/SettingsContext";
+import PinModal from "@/components/PinModal";
 import { useColors } from "@/hooks/useColors";
 
 function formatDate(iso: string): string {
@@ -43,10 +45,19 @@ export default function ReportsScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { reports, createReport, deleteReport, setActiveReport } = useChecklist();
+  const { hasPin } = useSettings();
 
   const [modalVisible, setModalVisible] = useState(false);
   const [newTitle, setNewTitle] = useState("");
-  const [confirmModal, setConfirmModal] = useState<{ title: string; message: string; onConfirm: () => void } | null>(null);
+
+  const [confirmModal, setConfirmModal] = useState<{
+    title: string;
+    message: string;
+    onConfirm: () => void;
+  } | null>(null);
+
+  const [pinModal, setPinModal] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState<(() => void) | null>(null);
 
   const styles = makeStyles(colors, insets);
 
@@ -65,13 +76,21 @@ export default function ReportsScreen() {
     router.push("/report");
   }
 
-  function handleDelete(report: Report) {
+  function handleDeletePress(report: Report) {
     setConfirmModal({
       title: "Excluir Relatório",
-      message: `Tem certeza que deseja excluir "${report.title}"?`,
+      message: `Tem certeza que deseja excluir "${report.title}"? Esta ação não pode ser desfeita.`,
       onConfirm: () => {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-        deleteReport(report.id);
+        const doDelete = () => {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+          deleteReport(report.id);
+        };
+        if (hasPin) {
+          setPendingDelete(() => doDelete);
+          setPinModal(true);
+        } else {
+          doDelete();
+        }
       },
     });
   }
@@ -92,7 +111,9 @@ export default function ReportsScreen() {
       <FlatList
         data={reports}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={reports.length === 0 ? styles.emptyContainer : styles.listContent}
+        contentContainerStyle={
+          reports.length === 0 ? styles.emptyContainer : styles.listContent
+        }
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
           <View style={styles.empty}>
@@ -107,37 +128,52 @@ export default function ReportsScreen() {
           const { answered, total } = getProgress(item);
           const pct = total > 0 ? answered / total : 0;
           return (
-            <TouchableOpacity
-              style={styles.card}
-              onPress={() => handleOpen(item)}
-              onLongPress={() => handleDelete(item)}
-              activeOpacity={0.85}
-            >
-              <View style={styles.cardLeft}>
-                <View style={styles.cardIcon}>
-                  <Feather name="file-text" size={20} color={colors.primary} />
-                </View>
-                <View style={styles.cardInfo}>
-                  <Text style={styles.cardTitle} numberOfLines={1}>
-                    {item.title}
-                  </Text>
-                  <Text style={styles.cardDate}>{formatDate(item.updatedAt)}</Text>
-                  <View style={styles.progressRow}>
-                    <View style={styles.progressBar}>
-                      <View style={[styles.progressFill, { width: `${pct * 100}%` as any }]} />
-                    </View>
-                    <Text style={styles.progressText}>
-                      {answered}/{total}
+            <View style={styles.card}>
+              <TouchableOpacity
+                style={styles.cardTouchable}
+                onPress={() => handleOpen(item)}
+                activeOpacity={0.85}
+              >
+                <View style={styles.cardLeft}>
+                  <View style={styles.cardIcon}>
+                    <Feather name="file-text" size={20} color={colors.primary} />
+                  </View>
+                  <View style={styles.cardInfo}>
+                    <Text style={styles.cardTitle} numberOfLines={1}>
+                      {item.title}
                     </Text>
+                    <Text style={styles.cardDate}>{formatDate(item.updatedAt)}</Text>
+                    <View style={styles.progressRow}>
+                      <View style={styles.progressBar}>
+                        <View
+                          style={[
+                            styles.progressFill,
+                            { width: `${pct * 100}%` as any },
+                          ]}
+                        />
+                      </View>
+                      <Text style={styles.progressText}>
+                        {answered}/{total}
+                      </Text>
+                    </View>
                   </View>
                 </View>
-              </View>
-              <Feather name="chevron-right" size={18} color={colors.mutedForeground} />
-            </TouchableOpacity>
+                <Feather name="chevron-right" size={18} color={colors.mutedForeground} />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.deleteBtn}
+                onPress={() => handleDeletePress(item)}
+                activeOpacity={0.7}
+              >
+                <Feather name="trash-2" size={17} color={colors.destructive} />
+              </TouchableOpacity>
+            </View>
           );
         }}
       />
 
+      {/* Modal: Novo Relatório */}
       <Modal
         visible={modalVisible}
         transparent
@@ -160,12 +196,18 @@ export default function ReportsScreen() {
             <View style={styles.modalActions}>
               <TouchableOpacity
                 style={styles.modalCancel}
-                onPress={() => { setModalVisible(false); setNewTitle(""); }}
+                onPress={() => {
+                  setModalVisible(false);
+                  setNewTitle("");
+                }}
               >
                 <Text style={styles.modalCancelText}>Cancelar</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.modalConfirm, !newTitle.trim() && styles.modalConfirmDisabled]}
+                style={[
+                  styles.modalConfirm,
+                  !newTitle.trim() && styles.modalConfirmDisabled,
+                ]}
                 onPress={handleCreate}
                 disabled={!newTitle.trim()}
               >
@@ -176,6 +218,7 @@ export default function ReportsScreen() {
         </Pressable>
       </Modal>
 
+      {/* Modal: Confirmar exclusão */}
       <Modal
         visible={!!confirmModal}
         transparent
@@ -187,11 +230,14 @@ export default function ReportsScreen() {
             <Text style={styles.modalTitle}>{confirmModal?.title}</Text>
             <Text style={styles.modalMessage}>{confirmModal?.message}</Text>
             <View style={styles.modalActions}>
-              <TouchableOpacity style={styles.modalCancel} onPress={() => setConfirmModal(null)}>
+              <TouchableOpacity
+                style={styles.modalCancel}
+                onPress={() => setConfirmModal(null)}
+              >
                 <Text style={styles.modalCancelText}>Cancelar</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.modalConfirm, { backgroundColor: "#DC2626" }]}
+                style={[styles.modalConfirm, { backgroundColor: colors.destructive }]}
                 onPress={() => {
                   const action = confirmModal?.onConfirm;
                   setConfirmModal(null);
@@ -204,11 +250,32 @@ export default function ReportsScreen() {
           </Pressable>
         </Pressable>
       </Modal>
+
+      {/* PIN Modal */}
+      <PinModal
+        visible={pinModal}
+        mode="verify"
+        title="Confirmar exclusão"
+        onSuccess={() => {
+          setPinModal(false);
+          if (pendingDelete) {
+            pendingDelete();
+            setPendingDelete(null);
+          }
+        }}
+        onCancel={() => {
+          setPinModal(false);
+          setPendingDelete(null);
+        }}
+      />
     </View>
   );
 }
 
-function makeStyles(colors: ReturnType<typeof useColors>, insets: ReturnType<typeof useSafeAreaInsets>) {
+function makeStyles(
+  colors: ReturnType<typeof useColors>,
+  insets: ReturnType<typeof useSafeAreaInsets>
+) {
   const topPad = Platform.OS === "web" ? 67 : insets.top;
   return StyleSheet.create({
     container: {
@@ -270,7 +337,6 @@ function makeStyles(colors: ReturnType<typeof useColors>, insets: ReturnType<typ
     card: {
       backgroundColor: colors.card,
       borderRadius: 12,
-      padding: 16,
       marginBottom: 12,
       flexDirection: "row",
       alignItems: "center",
@@ -281,6 +347,13 @@ function makeStyles(colors: ReturnType<typeof useColors>, insets: ReturnType<typ
       shadowRadius: 4,
       shadowOffset: { width: 0, height: 2 },
       elevation: 2,
+      overflow: "hidden",
+    },
+    cardTouchable: {
+      flex: 1,
+      flexDirection: "row",
+      alignItems: "center",
+      padding: 16,
     },
     cardLeft: {
       flex: 1,
@@ -334,6 +407,15 @@ function makeStyles(colors: ReturnType<typeof useColors>, insets: ReturnType<typ
       color: colors.mutedForeground,
       minWidth: 28,
       textAlign: "right",
+    },
+    deleteBtn: {
+      width: 48,
+      height: "100%" as any,
+      alignItems: "center",
+      justifyContent: "center",
+      borderLeftWidth: 1,
+      borderLeftColor: colors.border,
+      backgroundColor: colors.background,
     },
     overlay: {
       flex: 1,
