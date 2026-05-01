@@ -299,7 +299,7 @@ function makeStyles(
       height: "55%",
       top: "22%",
       left: "10%",
-      opacity: 0.20,
+      opacity: 0.70,
     },
     header: {
       flexDirection: "row",
