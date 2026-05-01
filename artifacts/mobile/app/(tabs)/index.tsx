@@ -4,7 +4,6 @@ import { ChevronRight, Clipboard, FileText, Plus, Trash2 } from "lucide-react-na
 import React, { useState } from "react";
 import {
   Image,
-  KeyboardAvoidingView,
   Modal,
   Platform,
   Pressable,
@@ -100,11 +99,7 @@ export default function ReportsScreen() {
   const topPad = Platform.OS === "web" ? Math.max(insets.top, 67) : insets.top;
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      keyboardVerticalOffset={0}
-    >
+    <View style={styles.container}>
       <View style={[styles.header, { paddingTop: topPad + 16 }]}>
         <View style={styles.headerBrand}>
           <Image source={LOGO} style={styles.headerLogo} />
@@ -234,7 +229,7 @@ export default function ReportsScreen() {
           setPendingDelete(null);
         }}
       />
-    </KeyboardAvoidingView>
+    </View>
   );
 }
 
