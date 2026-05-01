@@ -19,6 +19,8 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Category, ChecklistItem, useChecklist } from "@/context/ChecklistContext";
+import { useSettings } from "@/context/SettingsContext";
+import PinModal from "@/components/PinModal";
 import { useColors } from "@/hooks/useColors";
 import { exportReportAsCSV } from "@/utils/exportExcel";
 
@@ -26,6 +28,7 @@ export default function ReportScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { hasPin, validatePin } = useSettings();
   const {
     activeReport,
     addCategory,
@@ -46,6 +49,9 @@ export default function ReportScreen() {
   const [editCatName, setEditCatName] = useState("");
 
   const [exporting, setExporting] = useState(false);
+
+  const [pinModal, setPinModal] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState<(() => void) | null>(null);
 
   const styles = makeStyles(colors, insets);
 
@@ -80,13 +86,22 @@ export default function ReportScreen() {
     updateItem(activeReport!.id, cat.id, { ...item, observation: text });
   }
 
+  function requestPinThen(action: () => void) {
+    if (!hasPin) {
+      action();
+    } else {
+      setPendingDelete(() => action);
+      setPinModal(true);
+    }
+  }
+
   function handleDeleteItem(catId: string, itemId: string) {
     Alert.alert("Excluir item?", undefined, [
       { text: "Cancelar", style: "cancel" },
       {
         text: "Excluir",
         style: "destructive",
-        onPress: () => deleteItem(activeReport!.id, catId, itemId),
+        onPress: () => requestPinThen(() => deleteItem(activeReport!.id, catId, itemId)),
       },
     ]);
   }
@@ -97,7 +112,7 @@ export default function ReportScreen() {
       {
         text: "Excluir",
         style: "destructive",
-        onPress: () => deleteCategory(activeReport!.id, cat.id),
+        onPress: () => requestPinThen(() => deleteCategory(activeReport!.id, cat.id)),
       },
     ]);
   }
@@ -373,6 +388,23 @@ export default function ReportScreen() {
           </Pressable>
         </Pressable>
       </Modal>
+
+      <PinModal
+        visible={pinModal}
+        mode="verify"
+        title="Confirmar exclusão"
+        onSuccess={() => {
+          setPinModal(false);
+          if (pendingDelete) {
+            pendingDelete();
+            setPendingDelete(null);
+          }
+        }}
+        onCancel={() => {
+          setPinModal(false);
+          setPendingDelete(null);
+        }}
+      />
     </KeyboardAvoidingView>
   );
 }
