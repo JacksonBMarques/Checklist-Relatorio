@@ -98,7 +98,7 @@ export default function ReportsScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Relatórios</Text>
+        <Text style={styles.headerTitle}>DISK REG CHECK</Text>
         <TouchableOpacity
           style={styles.addBtn}
           onPress={() => setModalVisible(true)}
