@@ -11,6 +11,7 @@ import {
   StyleSheet,
   Text,
   TextInput,
+  ScrollView,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -126,18 +127,16 @@ export default function ReportsScreen() {
           </Text>
         </View>
       ) : (
-        <FlatList
-          data={reports}
-          keyExtractor={(item) => item.id}
-          showsVerticalScrollIndicator={false}
+        <ScrollView
+          style={styles.list}
           contentContainerStyle={[styles.listContent, { paddingBottom: bottomPad }]}
-          ItemSeparatorComponent={() => <View style={styles.separator} />}
-          removeClippedSubviews={false}
-          renderItem={({ item }) => {
+          showsVerticalScrollIndicator={false}
+        >
+          {reports.map((item) => {
             const { answered, total } = getProgress(item);
             const pct = total > 0 ? answered / total : 0;
             return (
-              <View style={styles.card}>
+              <View key={item.id} style={styles.card}>
                 <TouchableOpacity
                   style={styles.cardTouchable}
                   onPress={() => handleOpen(item)}
@@ -179,8 +178,8 @@ export default function ReportsScreen() {
                 </TouchableOpacity>
               </View>
             );
-          }}
-        />
+          })}
+        </ScrollView>
       )}
 
       <Modal
