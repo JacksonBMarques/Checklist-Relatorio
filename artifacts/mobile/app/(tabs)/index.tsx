@@ -3,11 +3,11 @@ import { useRouter } from "expo-router";
 import { ChevronRight, Clipboard, FileText, Plus, Trash2 } from "lucide-react-native";
 import React, { useState } from "react";
 import {
-  FlatList,
   Image,
   Modal,
   Platform,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -111,25 +111,23 @@ export default function ReportsScreen() {
         </TouchableOpacity>
       </View>
 
-      {reports.length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <Clipboard size={52} color={colors.mutedForeground} />
-          <Text style={styles.emptyTitle}>Nenhum relatório</Text>
-          <Text style={styles.emptyText}>Toque no botão + para criar seu primeiro relatório</Text>
-        </View>
-      ) : (
-        <FlatList
-          style={styles.list}
-          data={reports}
-          keyExtractor={(item) => item.id}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={[styles.listContent, { paddingBottom: bottomPad }]}
-          ItemSeparatorComponent={() => <View style={styles.separator} />}
-          renderItem={({ item }) => {
+      <ScrollView
+        style={styles.list}
+        contentContainerStyle={[styles.listContent, { paddingBottom: bottomPad }]}
+        showsVerticalScrollIndicator={false}
+      >
+        {reports.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <Clipboard size={52} color={colors.mutedForeground} />
+            <Text style={styles.emptyTitle}>Nenhum relatório</Text>
+            <Text style={styles.emptyText}>Toque no botão + para criar seu primeiro relatório</Text>
+          </View>
+        ) : (
+          reports.map((item) => {
             const { answered, total } = getProgress(item);
             const pct = total > 0 ? answered / total : 0;
             return (
-              <View style={styles.card}>
+              <View key={item.id} style={styles.card}>
                 <TouchableOpacity style={styles.cardTouchable} onPress={() => handleOpen(item)} activeOpacity={0.85}>
                   <View style={styles.cardLeft}>
                     <View style={styles.cardIcon}>
@@ -154,9 +152,9 @@ export default function ReportsScreen() {
                 </TouchableOpacity>
               </View>
             );
-          }}
-        />
-      )}
+          })
+        )}
+      </ScrollView>
 
       <Modal visible={modalVisible} transparent animationType="fade" onRequestClose={() => setModalVisible(false)}>
         <Pressable style={styles.overlay} onPress={() => setModalVisible(false)}>
@@ -282,11 +280,9 @@ function makeStyles(colors: ReturnType<typeof useColors>, insets: ReturnType<typ
       paddingHorizontal: 16,
       paddingTop: 16,
     },
-    separator: {
-      height: 12,
-    },
     emptyContainer: {
       flex: 1,
+      minHeight: 320,
       alignItems: "center",
       justifyContent: "center",
       paddingHorizontal: 40,
