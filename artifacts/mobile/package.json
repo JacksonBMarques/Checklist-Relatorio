@@ -57,6 +57,7 @@
   },
   "dependencies": {
     "expo-file-system": "~19.0.22",
+    "expo-sharing": "~13.0.1",
     "xlsx": "^0.18.5"
   }
 }

@@ -1,6 +1,8 @@
-import { Alert, Platform, Share } from "react-native";
 import * as FileSystem from "expo-file-system";
+import * as Sharing from "expo-sharing";
+import { Platform } from "react-native";
 import * as XLSX from "xlsx";
+
 import { Report } from "@/context/ChecklistContext";
 
 function buildSheet(report: Report): XLSX.WorkSheet {
@@ -51,25 +53,33 @@ export async function exportReportAsCSV(
     XLSX.utils.book_append_sheet(workbook, buildSheet(report), "Relatório");
   }
 
+  const slug = report.title.replace(/\s+/g, "_").replace(/[^a-zA-Z0-9_\-]/g, "");
   const filename = isBulk
-    ? `relatorios_7dias_${Date.now()}`
-    : `relatorio_${report.title.replace(/\s+/g, "_")}_${Date.now()}`;
+    ? `relatorios_${Date.now()}.xlsx`
+    : `relatorio_${slug || "sem_titulo"}_${Date.now()}.xlsx`;
 
   if (Platform.OS === "web") {
-    XLSX.writeFile(workbook, `${filename}.xlsx`);
+    XLSX.writeFile(workbook, filename);
     return;
   }
 
   const base64 = XLSX.write(workbook, { type: "base64", bookType: "xlsx" });
-  const fileUri = `${FileSystem.documentDirectory ?? ""}${filename}.xlsx`;
+
+  const dir = FileSystem.cacheDirectory ?? FileSystem.documentDirectory ?? "";
+  const fileUri = `${dir}${filename}`;
 
   await FileSystem.writeAsStringAsync(fileUri, base64, {
     encoding: FileSystem.EncodingType.Base64,
   });
 
-  await Share.share({
-    url: fileUri,
-    title: isBulk ? "Relatórios — últimos 7 dias" : `Relatório: ${report.title}`,
-    message: isBulk ? "Relatórios — últimos 7 dias" : `Relatório: ${report.title}`,
+  const canShare = await Sharing.isAvailableAsync();
+  if (!canShare) {
+    throw new Error("Compartilhamento não disponível neste dispositivo.");
+  }
+
+  await Sharing.shareAsync(fileUri, {
+    mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    dialogTitle: isBulk ? "Exportar relatórios" : `Exportar: ${report.title}`,
+    UTI: "com.microsoft.excel.xlsx",
   });
 }
