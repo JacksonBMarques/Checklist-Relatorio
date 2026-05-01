@@ -4,6 +4,7 @@ import { ChevronRight, Clipboard, FileText, Plus, Trash2 } from "lucide-react-na
 import React, { useState } from "react";
 import {
   FlatList,
+  Image,
   Modal,
   Platform,
   Pressable,
@@ -98,7 +99,13 @@ export default function ReportsScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>DISK REG CHECK</Text>
+        <View style={styles.headerBrand}>
+          <Image
+            source={require("../../assets/images/logo.png")}
+            style={styles.headerLogo}
+          />
+          <Text style={styles.headerTitle}>DiskReg Check</Text>
+        </View>
         <TouchableOpacity
           style={styles.addBtn}
           onPress={() => setModalVisible(true)}
@@ -293,8 +300,21 @@ function makeStyles(
       borderBottomWidth: 1,
       borderBottomColor: colors.border,
     },
+    headerBrand: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 10,
+      flex: 1,
+    },
+    headerLogo: {
+      width: 42,
+      height: 42,
+      borderRadius: 21,
+      borderWidth: 2,
+      borderColor: colors.border,
+    },
     headerTitle: {
-      fontSize: 26,
+      fontSize: 22,
       fontFamily: "Inter_700Bold",
       color: colors.foreground,
     },
