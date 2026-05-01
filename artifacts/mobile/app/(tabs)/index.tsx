@@ -132,6 +132,7 @@ export default function ReportsScreen() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={[styles.listContent, { paddingBottom: bottomPad }]}
           ItemSeparatorComponent={() => <View style={styles.separator} />}
+          removeClippedSubviews={false}
           renderItem={({ item }) => {
             const { answered, total } = getProgress(item);
             const pct = total > 0 ? answered / total : 0;
@@ -354,6 +355,7 @@ function makeStyles(
     card: {
       backgroundColor: colors.card,
       borderRadius: 12,
+      minHeight: 96,
       flexDirection: "row",
       alignItems: "center",
       borderWidth: 1,
