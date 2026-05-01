@@ -92,7 +92,7 @@ export async function exportReportAsCSV(
 
   const fileUri = (FileSystem.cacheDirectory ?? "") + filename;
   await FileSystem.writeAsStringAsync(fileUri, base64, {
-    encoding: FileSystem.EncodingType.Base64,
+    encoding: "base64",
   });
 
   const canShare = await Sharing.isAvailableAsync();
