@@ -1,6 +1,7 @@
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
-import React, { useState } from "react";
+import { useFocusEffect } from "expo-router";
+import React, { useCallback, useState } from "react";
 import {
   Modal,
   Platform,
@@ -25,6 +26,15 @@ export default function SettingsScreen() {
   const [pinModal, setPinModal] = useState<"verify-entry" | "set" | "change" | null>(null);
   const [settingsUnlocked, setSettingsUnlocked] = useState(false);
   const [infoModal, setInfoModal] = useState<{ title: string; message: string } | null>(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      setSettingsUnlocked(false);
+      if (hasPin) {
+        setPinModal("verify-entry");
+      }
+    }, [hasPin])
+  );
   const [confirmModal, setConfirmModal] = useState<{
     title: string;
     message: string;
