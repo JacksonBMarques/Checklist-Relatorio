@@ -38,6 +38,17 @@ export default function ReportScreen() {
     deleteItem,
   } = useChecklist();
 
+  const [collapsedCats, setCollapsedCats] = useState<Set<string>>(new Set());
+
+  function toggleCategory(catId: string) {
+    setCollapsedCats((prev) => {
+      const next = new Set(prev);
+      if (next.has(catId)) next.delete(catId);
+      else next.add(catId);
+      return next;
+    });
+  }
+
   const [addCatModal, setAddCatModal] = useState(false);
   const [catName, setCatName] = useState("");
 
@@ -215,30 +226,50 @@ export default function ReportScreen() {
             </Text>
           </View>
         ) : (
-          activeReport.categories.map((cat) => (
+          activeReport.categories.map((cat) => {
+            const isCollapsed = collapsedCats.has(cat.id);
+            return (
             <View key={cat.id} style={styles.categoryCard}>
-              <View style={styles.categoryHeader}>
+              <TouchableOpacity
+                style={styles.categoryHeader}
+                onPress={() => toggleCategory(cat.id)}
+                activeOpacity={0.7}
+              >
                 <View style={styles.categoryTitleRow}>
                   <View style={styles.categoryDot} />
                   <Text style={styles.categoryName}>{cat.name}</Text>
+                  {cat.items.length > 0 && (
+                    <Text style={styles.categoryCount}>
+                      {cat.items.filter((i) => i.answer !== null).length}/{cat.items.length}
+                    </Text>
+                  )}
                 </View>
                 <View style={styles.categoryActions}>
                   <TouchableOpacity
                     onPress={() => { setEditCatModal(cat); setEditCatName(cat.name); }}
                     style={styles.iconBtn}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 4 }}
                   >
                     <Feather name="edit-2" size={15} color={colors.mutedForeground} />
                   </TouchableOpacity>
                   <TouchableOpacity
                     onPress={() => handleDeleteCategory(cat)}
                     style={styles.iconBtn}
+                    hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
                   >
                     <Feather name="trash-2" size={15} color={colors.destructive} />
                   </TouchableOpacity>
+                  <View style={styles.iconBtn}>
+                    <Feather
+                      name={isCollapsed ? "chevron-down" : "chevron-up"}
+                      size={16}
+                      color={colors.mutedForeground}
+                    />
+                  </View>
                 </View>
-              </View>
+              </TouchableOpacity>
 
-              {cat.items.map((item) => (
+              {!isCollapsed && cat.items.map((item) => (
                 <View key={item.id} style={styles.itemCard}>
                   <View style={styles.itemTop}>
                     <Text style={styles.itemLabel} numberOfLines={2}>
@@ -312,16 +343,19 @@ export default function ReportScreen() {
                 </View>
               ))}
 
-              <TouchableOpacity
-                style={styles.addItemBtn}
-                onPress={() => { setAddItemModal(cat.id); setItemLabel(""); }}
-                activeOpacity={0.8}
-              >
-                <Feather name="plus" size={15} color={colors.primary} />
-                <Text style={styles.addItemBtnText}>Adicionar item</Text>
-              </TouchableOpacity>
+              {!isCollapsed && (
+                <TouchableOpacity
+                  style={styles.addItemBtn}
+                  onPress={() => { setAddItemModal(cat.id); setItemLabel(""); }}
+                  activeOpacity={0.8}
+                >
+                  <Feather name="plus" size={15} color={colors.primary} />
+                  <Text style={styles.addItemBtnText}>Adicionar item</Text>
+                </TouchableOpacity>
+              )}
             </View>
-          ))
+            );
+          })
         )}
 
         <TouchableOpacity
@@ -610,6 +644,12 @@ function makeStyles(colors: ReturnType<typeof useColors>, insets: ReturnType<typ
       fontFamily: "Inter_600SemiBold",
       color: colors.foreground,
       flex: 1,
+    },
+    categoryCount: {
+      fontSize: 12,
+      fontFamily: "Inter_500Medium",
+      color: colors.mutedForeground,
+      marginLeft: 4,
     },
     categoryActions: {
       flexDirection: "row",
