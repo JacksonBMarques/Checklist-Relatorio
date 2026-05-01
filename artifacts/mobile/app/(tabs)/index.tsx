@@ -1,0 +1,377 @@
+import { Feather } from "@expo/vector-icons";
+import * as Haptics from "expo-haptics";
+import { useRouter } from "expo-router";
+import React, { useState } from "react";
+import {
+  Alert,
+  FlatList,
+  Modal,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+import { useChecklist, Report } from "@/context/ChecklistContext";
+import { useColors } from "@/hooks/useColors";
+
+function formatDate(iso: string): string {
+  return new Date(iso).toLocaleDateString("pt-BR", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+}
+
+function getProgress(report: Report): { answered: number; total: number } {
+  let answered = 0;
+  let total = 0;
+  for (const cat of report.categories) {
+    for (const item of cat.items) {
+      total++;
+      if (item.answer !== null) answered++;
+    }
+  }
+  return { answered, total };
+}
+
+export default function ReportsScreen() {
+  const colors = useColors();
+  const insets = useSafeAreaInsets();
+  const router = useRouter();
+  const { reports, createReport, deleteReport, setActiveReport } = useChecklist();
+
+  const [modalVisible, setModalVisible] = useState(false);
+  const [newTitle, setNewTitle] = useState("");
+
+  const styles = makeStyles(colors, insets);
+
+  function handleCreate() {
+    if (!newTitle.trim()) return;
+    const report = createReport(newTitle.trim());
+    setNewTitle("");
+    setModalVisible(false);
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    setActiveReport(report);
+    router.push("/report");
+  }
+
+  function handleOpen(report: Report) {
+    setActiveReport(report);
+    router.push("/report");
+  }
+
+  function handleDelete(report: Report) {
+    Alert.alert(
+      "Excluir Relatório",
+      `Tem certeza que deseja excluir "${report.title}"?`,
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Excluir",
+          style: "destructive",
+          onPress: () => {
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+            deleteReport(report.id);
+          },
+        },
+      ]
+    );
+  }
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Relatórios</Text>
+        <TouchableOpacity
+          style={styles.addBtn}
+          onPress={() => setModalVisible(true)}
+          activeOpacity={0.8}
+        >
+          <Feather name="plus" size={22} color={colors.primaryForeground} />
+        </TouchableOpacity>
+      </View>
+
+      <FlatList
+        data={reports}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={reports.length === 0 ? styles.emptyContainer : styles.listContent}
+        showsVerticalScrollIndicator={false}
+        ListEmptyComponent={
+          <View style={styles.empty}>
+            <Feather name="clipboard" size={52} color={colors.mutedForeground} />
+            <Text style={styles.emptyTitle}>Nenhum relatório</Text>
+            <Text style={styles.emptyText}>
+              Toque no botão + para criar seu primeiro relatório
+            </Text>
+          </View>
+        }
+        renderItem={({ item }) => {
+          const { answered, total } = getProgress(item);
+          const pct = total > 0 ? answered / total : 0;
+          return (
+            <TouchableOpacity
+              style={styles.card}
+              onPress={() => handleOpen(item)}
+              onLongPress={() => handleDelete(item)}
+              activeOpacity={0.85}
+            >
+              <View style={styles.cardLeft}>
+                <View style={styles.cardIcon}>
+                  <Feather name="file-text" size={20} color={colors.primary} />
+                </View>
+                <View style={styles.cardInfo}>
+                  <Text style={styles.cardTitle} numberOfLines={1}>
+                    {item.title}
+                  </Text>
+                  <Text style={styles.cardDate}>{formatDate(item.updatedAt)}</Text>
+                  <View style={styles.progressRow}>
+                    <View style={styles.progressBar}>
+                      <View style={[styles.progressFill, { width: `${pct * 100}%` as any }]} />
+                    </View>
+                    <Text style={styles.progressText}>
+                      {answered}/{total}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+              <Feather name="chevron-right" size={18} color={colors.mutedForeground} />
+            </TouchableOpacity>
+          );
+        }}
+      />
+
+      <Modal
+        visible={modalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <Pressable style={styles.overlay} onPress={() => setModalVisible(false)}>
+          <Pressable style={styles.modal} onPress={() => {}}>
+            <Text style={styles.modalTitle}>Novo Relatório</Text>
+            <TextInput
+              style={styles.modalInput}
+              placeholder="Nome do relatório"
+              placeholderTextColor={colors.mutedForeground}
+              value={newTitle}
+              onChangeText={setNewTitle}
+              autoFocus
+              returnKeyType="done"
+              onSubmitEditing={handleCreate}
+            />
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                style={styles.modalCancel}
+                onPress={() => { setModalVisible(false); setNewTitle(""); }}
+              >
+                <Text style={styles.modalCancelText}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalConfirm, !newTitle.trim() && styles.modalConfirmDisabled]}
+                onPress={handleCreate}
+                disabled={!newTitle.trim()}
+              >
+                <Text style={styles.modalConfirmText}>Criar</Text>
+              </TouchableOpacity>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
+    </View>
+  );
+}
+
+function makeStyles(colors: ReturnType<typeof useColors>, insets: ReturnType<typeof useSafeAreaInsets>) {
+  const topPad = Platform.OS === "web" ? 67 : insets.top;
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingTop: topPad + 16,
+      paddingBottom: 16,
+      paddingHorizontal: 20,
+      backgroundColor: colors.card,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    headerTitle: {
+      fontSize: 26,
+      fontFamily: "Inter_700Bold",
+      color: colors.foreground,
+    },
+    addBtn: {
+      backgroundColor: colors.primary,
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    listContent: {
+      paddingHorizontal: 16,
+      paddingTop: 16,
+      paddingBottom: Platform.OS === "web" ? 34 : insets.bottom + 16,
+    },
+    emptyContainer: {
+      flex: 1,
+      justifyContent: "center",
+    },
+    empty: {
+      alignItems: "center",
+      paddingHorizontal: 40,
+      gap: 12,
+    },
+    emptyTitle: {
+      fontSize: 18,
+      fontFamily: "Inter_600SemiBold",
+      color: colors.foreground,
+      marginTop: 8,
+    },
+    emptyText: {
+      fontSize: 14,
+      fontFamily: "Inter_400Regular",
+      color: colors.mutedForeground,
+      textAlign: "center",
+      lineHeight: 20,
+    },
+    card: {
+      backgroundColor: colors.card,
+      borderRadius: 12,
+      padding: 16,
+      marginBottom: 12,
+      flexDirection: "row",
+      alignItems: "center",
+      borderWidth: 1,
+      borderColor: colors.border,
+      shadowColor: "#000",
+      shadowOpacity: 0.04,
+      shadowRadius: 4,
+      shadowOffset: { width: 0, height: 2 },
+      elevation: 2,
+    },
+    cardLeft: {
+      flex: 1,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+    },
+    cardIcon: {
+      width: 44,
+      height: 44,
+      borderRadius: 10,
+      backgroundColor: colors.secondary,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    cardInfo: {
+      flex: 1,
+      gap: 4,
+    },
+    cardTitle: {
+      fontSize: 15,
+      fontFamily: "Inter_600SemiBold",
+      color: colors.foreground,
+    },
+    cardDate: {
+      fontSize: 12,
+      fontFamily: "Inter_400Regular",
+      color: colors.mutedForeground,
+    },
+    progressRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+      marginTop: 4,
+    },
+    progressBar: {
+      flex: 1,
+      height: 4,
+      backgroundColor: colors.muted,
+      borderRadius: 2,
+      overflow: "hidden",
+    },
+    progressFill: {
+      height: 4,
+      backgroundColor: colors.primary,
+      borderRadius: 2,
+    },
+    progressText: {
+      fontSize: 11,
+      fontFamily: "Inter_500Medium",
+      color: colors.mutedForeground,
+      minWidth: 28,
+      textAlign: "right",
+    },
+    overlay: {
+      flex: 1,
+      backgroundColor: "rgba(0,0,0,0.5)",
+      justifyContent: "center",
+      alignItems: "center",
+      padding: 24,
+    },
+    modal: {
+      backgroundColor: colors.card,
+      borderRadius: 16,
+      padding: 24,
+      width: "100%",
+      maxWidth: 380,
+      gap: 16,
+    },
+    modalTitle: {
+      fontSize: 18,
+      fontFamily: "Inter_700Bold",
+      color: colors.foreground,
+    },
+    modalInput: {
+      borderWidth: 1,
+      borderColor: colors.input,
+      borderRadius: 10,
+      padding: 12,
+      fontSize: 15,
+      fontFamily: "Inter_400Regular",
+      color: colors.foreground,
+      backgroundColor: colors.background,
+    },
+    modalActions: {
+      flexDirection: "row",
+      gap: 12,
+    },
+    modalCancel: {
+      flex: 1,
+      padding: 12,
+      borderRadius: 10,
+      backgroundColor: colors.muted,
+      alignItems: "center",
+    },
+    modalCancelText: {
+      fontSize: 15,
+      fontFamily: "Inter_500Medium",
+      color: colors.mutedForeground,
+    },
+    modalConfirm: {
+      flex: 1,
+      padding: 12,
+      borderRadius: 10,
+      backgroundColor: colors.primary,
+      alignItems: "center",
+    },
+    modalConfirmDisabled: {
+      opacity: 0.5,
+    },
+    modalConfirmText: {
+      fontSize: 15,
+      fontFamily: "Inter_600SemiBold",
+      color: colors.primaryForeground,
+    },
+  });
+}

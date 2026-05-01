@@ -1,0 +1,8 @@
+uploads = []
+outputs = []
+
+[[generated]]
+id = "gicCqa93j7_2DxRVdU48C"
+uri = "file://artifacts/mobile/assets/images/icon.png"
+type = "image"
+title = "checklist app icon"
