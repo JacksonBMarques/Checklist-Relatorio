@@ -37,15 +37,17 @@ function sanitizeSheetName(name: string): string {
   return name.replace(/[\/\\?\*\[\]:]/g, "_").substring(0, 31);
 }
 
-function uint8ArrayToBase64(bytes: Uint8Array): string {
+// Convert a binary string (each char = one byte, charCode 0-255) to base64.
+// Works reliably in Hermes without btoa or Uint8Array issues.
+function binaryStringToBase64(binaryStr: string): string {
   const chars =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
   let result = "";
-  const len = bytes.length;
+  const len = binaryStr.length;
   for (let i = 0; i < len; i += 3) {
-    const a = bytes[i];
-    const b = i + 1 < len ? bytes[i + 1] : 0;
-    const c = i + 2 < len ? bytes[i + 2] : 0;
+    const a = binaryStr.charCodeAt(i);
+    const b = i + 1 < len ? binaryStr.charCodeAt(i + 1) : 0;
+    const c = i + 2 < len ? binaryStr.charCodeAt(i + 2) : 0;
     result += chars[a >> 2];
     result += chars[((a & 3) << 4) | (b >> 4)];
     result += i + 1 < len ? chars[((b & 15) << 2) | (c >> 6)] : "=";
@@ -83,12 +85,18 @@ export async function exportReportAsCSV(
     return;
   }
 
-  const uint8Array: Uint8Array = XLSX.write(workbook, {
-    type: "array",
+  // type:"binary" returns a JS string where charCode of each char is the byte value.
+  // This is the most Hermes-safe output type — no Uint8Array bridge issues.
+  const binaryStr: string = XLSX.write(workbook, {
+    type: "binary",
     bookType: "xlsx",
   });
 
-  const base64 = uint8ArrayToBase64(uint8Array);
+  if (!binaryStr || binaryStr.length === 0) {
+    throw new Error("Falha ao gerar o arquivo Excel (conteúdo vazio).");
+  }
+
+  const base64 = binaryStringToBase64(binaryStr);
 
   const fileUri = (FileSystem.cacheDirectory ?? "") + filename;
   await FileSystem.writeAsStringAsync(fileUri, base64, {
