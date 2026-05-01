@@ -4,6 +4,7 @@ import { ChevronRight, Clipboard, FileText, Plus, Trash2 } from "lucide-react-na
 import React, { useState } from "react";
 import {
   Image,
+  KeyboardAvoidingView,
   Modal,
   Platform,
   Pressable,
@@ -96,11 +97,14 @@ export default function ReportsScreen() {
     });
   }
 
-  const topPad = Platform.OS === "web" ? 67 : insets.top;
-  const bottomPad = Platform.OS === "web" ? 84 : insets.bottom + 80;
+  const topPad = Platform.OS === "web" ? Math.max(insets.top, 67) : insets.top;
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={0}
+    >
       <View style={[styles.header, { paddingTop: topPad + 16 }]}>
         <View style={styles.headerBrand}>
           <Image source={LOGO} style={styles.headerLogo} />
@@ -112,12 +116,16 @@ export default function ReportsScreen() {
       </View>
 
       <ScrollView
-        style={styles.list}
-        contentContainerStyle={[styles.listContent, { paddingBottom: bottomPad }]}
+        style={styles.scroll}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingBottom: Platform.OS === "web" ? 84 : insets.bottom + 100 },
+        ]}
+        keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
         {reports.length === 0 ? (
-          <View style={styles.emptyContainer}>
+          <View style={styles.empty}>
             <Clipboard size={52} color={colors.mutedForeground} />
             <Text style={styles.emptyTitle}>Nenhum relatório</Text>
             <Text style={styles.emptyText}>Toque no botão + para criar seu primeiro relatório</Text>
@@ -226,7 +234,7 @@ export default function ReportsScreen() {
           setPendingDelete(null);
         }}
       />
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -273,20 +281,15 @@ function makeStyles(colors: ReturnType<typeof useColors>, insets: ReturnType<typ
       justifyContent: "center",
       overflow: "hidden",
     },
-    list: {
-      flex: 1,
-    },
-    listContent: {
+    scroll: { flex: 1 },
+    scrollContent: {
       paddingHorizontal: 16,
       paddingTop: 16,
       gap: 12,
     },
-    emptyContainer: {
-      flex: 1,
-      minHeight: 320,
+    empty: {
       alignItems: "center",
-      justifyContent: "center",
-      paddingHorizontal: 40,
+      marginTop: 80,
       gap: 12,
     },
     emptyTitle: {
@@ -305,7 +308,6 @@ function makeStyles(colors: ReturnType<typeof useColors>, insets: ReturnType<typ
     card: {
       backgroundColor: colors.card,
       borderRadius: 12,
-      minHeight: 96,
       flexDirection: "row",
       alignItems: "center",
       borderWidth: 1,
