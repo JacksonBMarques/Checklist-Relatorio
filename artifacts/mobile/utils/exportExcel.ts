@@ -1,4 +1,4 @@
-import { File, Paths } from "expo-file-system/next";
+import * as FileSystem from "expo-file-system";
 import * as Sharing from "expo-sharing";
 import { Platform } from "react-native";
 import * as XLSX from "xlsx";
@@ -37,6 +37,23 @@ function sanitizeSheetName(name: string): string {
   return name.replace(/[\/\\?\*\[\]:]/g, "_").substring(0, 31);
 }
 
+function uint8ArrayToBase64(bytes: Uint8Array): string {
+  const chars =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+  let result = "";
+  const len = bytes.length;
+  for (let i = 0; i < len; i += 3) {
+    const a = bytes[i];
+    const b = i + 1 < len ? bytes[i + 1] : 0;
+    const c = i + 2 < len ? bytes[i + 2] : 0;
+    result += chars[a >> 2];
+    result += chars[((a & 3) << 4) | (b >> 4)];
+    result += i + 1 < len ? chars[((b & 15) << 2) | (c >> 6)] : "=";
+    result += i + 2 < len ? chars[c & 63] : "=";
+  }
+  return result;
+}
+
 export async function exportReportAsCSV(
   report: Report,
   allReports?: Report[]
@@ -46,7 +63,8 @@ export async function exportReportAsCSV(
 
   if (isBulk) {
     for (const r of allReports!) {
-      const sheetName = sanitizeSheetName(r.title) || `Rel_${r.id.slice(0, 6)}`;
+      const sheetName =
+        sanitizeSheetName(r.title) || `Rel_${r.id.slice(0, 6)}`;
       XLSX.utils.book_append_sheet(workbook, buildSheet(r), sheetName);
     }
   } else {
@@ -65,27 +83,27 @@ export async function exportReportAsCSV(
     return;
   }
 
-  // Generate Uint8Array — works reliably in Hermes/React Native
   const uint8Array: Uint8Array = XLSX.write(workbook, {
     type: "array",
     bookType: "xlsx",
   });
 
-  // Write using the new expo-file-system/next API
-  const file = new File(Paths.cache, filename);
-  file.write(uint8Array);
+  const base64 = uint8ArrayToBase64(uint8Array);
+
+  const fileUri = (FileSystem.cacheDirectory ?? "") + filename;
+  await FileSystem.writeAsStringAsync(fileUri, base64, {
+    encoding: FileSystem.EncodingType.Base64,
+  });
 
   const canShare = await Sharing.isAvailableAsync();
   if (!canShare) {
     throw new Error("Compartilhamento não disponível neste dispositivo.");
   }
 
-  await Sharing.shareAsync(file.uri, {
+  await Sharing.shareAsync(fileUri, {
     mimeType:
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    dialogTitle: isBulk
-      ? "Exportar relatórios"
-      : `Exportar: ${report.title}`,
+    dialogTitle: isBulk ? "Exportar relatórios" : `Exportar: ${report.title}`,
     UTI: "com.microsoft.excel.xlsx",
   });
 }
