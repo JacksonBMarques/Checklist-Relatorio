@@ -98,14 +98,12 @@ export default function ReportsScreen() {
     });
   }
 
+  const topPad = Platform.OS === "web" ? 67 : insets.top;
+  const bottomPad = Platform.OS === "web" ? 34 : insets.bottom + 16;
+
   return (
     <View style={styles.container}>
-      {/* Background watermark */}
-      <View style={styles.bgContainer} pointerEvents="none">
-        <Image source={LOGO} style={styles.bgImage} resizeMode="contain" />
-      </View>
-
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: topPad + 16 }]}>
         <View style={styles.headerBrand}>
           <Image source={LOGO} style={styles.headerLogo} />
           <Text style={styles.headerTitle}>DiskReg Check</Text>
@@ -119,71 +117,69 @@ export default function ReportsScreen() {
         </TouchableOpacity>
       </View>
 
-      <FlatList
-        data={reports}
-        keyExtractor={(item) => item.id}
-        style={styles.list}
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
-        ListEmptyComponent={
-          <View style={styles.emptyWrapper}>
-            <View style={styles.empty}>
-              <Clipboard size={52} color={colors.mutedForeground} />
-              <Text style={styles.emptyTitle}>Nenhum relatório</Text>
-              <Text style={styles.emptyText}>
-                Toque no botão + para criar seu primeiro relatório
-              </Text>
-            </View>
-          </View>
-        }
-        renderItem={({ item }) => {
-          const { answered, total } = getProgress(item);
-          const pct = total > 0 ? answered / total : 0;
-          return (
-            <View style={styles.card}>
-              <TouchableOpacity
-                style={styles.cardTouchable}
-                onPress={() => handleOpen(item)}
-                activeOpacity={0.85}
-              >
-                <View style={styles.cardLeft}>
-                  <View style={styles.cardIcon}>
-                    <FileText size={20} color={colors.primary} />
-                  </View>
-                  <View style={styles.cardInfo}>
-                    <Text style={styles.cardTitle} numberOfLines={1}>
-                      {item.title}
-                    </Text>
-                    <Text style={styles.cardDate}>{formatDate(item.updatedAt)}</Text>
-                    <View style={styles.progressRow}>
-                      <View style={styles.progressBar}>
-                        <View
-                          style={[
-                            styles.progressFill,
-                            { width: `${pct * 100}%` as any },
-                          ]}
-                        />
-                      </View>
-                      <Text style={styles.progressText}>
-                        {answered}/{total}
+      {reports.length === 0 ? (
+        <View style={styles.emptyContainer}>
+          <Clipboard size={52} color={colors.mutedForeground} />
+          <Text style={styles.emptyTitle}>Nenhum relatório</Text>
+          <Text style={styles.emptyText}>
+            Toque no botão + para criar seu primeiro relatório
+          </Text>
+        </View>
+      ) : (
+        <FlatList
+          data={reports}
+          keyExtractor={(item) => item.id}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={[styles.listContent, { paddingBottom: bottomPad }]}
+          renderItem={({ item }) => {
+            const { answered, total } = getProgress(item);
+            const pct = total > 0 ? answered / total : 0;
+            return (
+              <View style={styles.card}>
+                <TouchableOpacity
+                  style={styles.cardTouchable}
+                  onPress={() => handleOpen(item)}
+                  activeOpacity={0.85}
+                >
+                  <View style={styles.cardLeft}>
+                    <View style={styles.cardIcon}>
+                      <FileText size={20} color={colors.primary} />
+                    </View>
+                    <View style={styles.cardInfo}>
+                      <Text style={styles.cardTitle} numberOfLines={1}>
+                        {item.title}
                       </Text>
+                      <Text style={styles.cardDate}>{formatDate(item.updatedAt)}</Text>
+                      <View style={styles.progressRow}>
+                        <View style={styles.progressBar}>
+                          <View
+                            style={[
+                              styles.progressFill,
+                              { width: `${pct * 100}%` as any },
+                            ]}
+                          />
+                        </View>
+                        <Text style={styles.progressText}>
+                          {answered}/{total}
+                        </Text>
+                      </View>
                     </View>
                   </View>
-                </View>
-                <ChevronRight size={18} color={colors.mutedForeground} />
-              </TouchableOpacity>
+                  <ChevronRight size={18} color={colors.mutedForeground} />
+                </TouchableOpacity>
 
-              <TouchableOpacity
-                style={styles.deleteBtn}
-                onPress={() => handleDeletePress(item)}
-                activeOpacity={0.7}
-              >
-                <Trash2 size={17} color={colors.destructive} />
-              </TouchableOpacity>
-            </View>
-          );
-        }}
-      />
+                <TouchableOpacity
+                  style={styles.deleteBtn}
+                  onPress={() => handleDeletePress(item)}
+                  activeOpacity={0.7}
+                >
+                  <Trash2 size={17} color={colors.destructive} />
+                </TouchableOpacity>
+              </View>
+            );
+          }}
+        />
+      )}
 
       <Modal
         visible={modalVisible}
@@ -285,31 +281,15 @@ function makeStyles(
   colors: ReturnType<typeof useColors>,
   insets: ReturnType<typeof useSafeAreaInsets>
 ) {
-  const topPad = Platform.OS === "web" ? 67 : insets.top;
   return StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: colors.background,
     },
-    bgContainer: {
-      position: "absolute",
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    bgImage: {
-      width: "80%",
-      aspectRatio: 1,
-      opacity: 0.70,
-    },
     header: {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      paddingTop: topPad + 16,
       paddingBottom: 16,
       paddingHorizontal: 20,
       backgroundColor: colors.card,
@@ -343,22 +323,10 @@ function makeStyles(
       justifyContent: "center",
       overflow: "hidden",
     },
-    list: {
+    emptyContainer: {
       flex: 1,
-    },
-    listContent: {
-      paddingHorizontal: 16,
-      paddingTop: 16,
-      paddingBottom: Platform.OS === "web" ? 34 : insets.bottom + 16,
-    },
-    emptyWrapper: {
-      flex: 1,
-      minHeight: 400,
+      alignItems: "center",
       justifyContent: "center",
-      alignItems: "center",
-    },
-    empty: {
-      alignItems: "center",
       paddingHorizontal: 40,
       gap: 12,
     },
@@ -374,6 +342,10 @@ function makeStyles(
       color: colors.mutedForeground,
       textAlign: "center",
       lineHeight: 20,
+    },
+    listContent: {
+      paddingHorizontal: 16,
+      paddingTop: 16,
     },
     card: {
       backgroundColor: colors.card,
