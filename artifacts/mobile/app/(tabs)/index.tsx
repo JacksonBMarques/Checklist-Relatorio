@@ -125,6 +125,7 @@ export default function ReportsScreen() {
       <FlatList
         data={reports}
         keyExtractor={(item) => item.id}
+        style={styles.list}
         contentContainerStyle={
           reports.length === 0 ? styles.emptyContainer : styles.listContent
         }
@@ -338,6 +339,9 @@ function makeStyles(
       alignItems: "center",
       justifyContent: "center",
       overflow: "hidden",
+    },
+    list: {
+      flex: 1,
     },
     listContent: {
       paddingHorizontal: 16,
