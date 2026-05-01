@@ -37,6 +37,15 @@ function sanitizeSheetName(name: string): string {
   return name.replace(/[\/\\?\*\[\]:]/g, "_").substring(0, 31);
 }
 
+function uint8ArrayToBase64(bytes: Uint8Array): string {
+  let binary = "";
+  const len = bytes.byteLength;
+  for (let i = 0; i < len; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
+}
+
 export async function exportReportAsCSV(
   report: Report,
   allReports?: Report[]
@@ -63,13 +72,19 @@ export async function exportReportAsCSV(
     return;
   }
 
-  const base64 = XLSX.write(workbook, { type: "base64", bookType: "xlsx" });
+  // Use "array" type (Uint8Array) — compatible with Hermes/React Native
+  const uint8Array: Uint8Array = XLSX.write(workbook, {
+    type: "array",
+    bookType: "xlsx",
+  });
+
+  const base64 = uint8ArrayToBase64(uint8Array);
 
   const dir = FileSystem.cacheDirectory ?? FileSystem.documentDirectory ?? "";
   const fileUri = `${dir}${filename}`;
 
   await FileSystem.writeAsStringAsync(fileUri, base64, {
-    encoding: FileSystem.EncodingType.Base64,
+    encoding: "base64",
   });
 
   const canShare = await Sharing.isAvailableAsync();
