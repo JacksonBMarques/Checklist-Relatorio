@@ -101,12 +101,9 @@ export default function ReportsScreen() {
   return (
     <View style={styles.container}>
       {/* Background watermark */}
-      <Image
-        source={LOGO}
-        style={styles.bgImage}
-        resizeMode="contain"
-        pointerEvents="none"
-      />
+      <View style={styles.bgContainer} pointerEvents="none">
+        <Image source={LOGO} style={styles.bgImage} resizeMode="contain" />
+      </View>
 
       <View style={styles.header}>
         <View style={styles.headerBrand}>
@@ -126,17 +123,17 @@ export default function ReportsScreen() {
         data={reports}
         keyExtractor={(item) => item.id}
         style={styles.list}
-        contentContainerStyle={
-          reports.length === 0 ? styles.emptyContainer : styles.listContent
-        }
+        contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
-          <View style={styles.empty}>
-            <Clipboard size={52} color={colors.mutedForeground} />
-            <Text style={styles.emptyTitle}>Nenhum relatório</Text>
-            <Text style={styles.emptyText}>
-              Toque no botão + para criar seu primeiro relatório
-            </Text>
+          <View style={styles.emptyWrapper}>
+            <View style={styles.empty}>
+              <Clipboard size={52} color={colors.mutedForeground} />
+              <Text style={styles.emptyTitle}>Nenhum relatório</Text>
+              <Text style={styles.emptyText}>
+                Toque no botão + para criar seu primeiro relatório
+              </Text>
+            </View>
           </View>
         }
         renderItem={({ item }) => {
@@ -294,12 +291,18 @@ function makeStyles(
       flex: 1,
       backgroundColor: colors.background,
     },
-    bgImage: {
+    bgContainer: {
       position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    bgImage: {
       width: "80%",
-      height: "55%",
-      top: "22%",
-      left: "10%",
+      aspectRatio: 1,
       opacity: 0.70,
     },
     header: {
@@ -348,9 +351,11 @@ function makeStyles(
       paddingTop: 16,
       paddingBottom: Platform.OS === "web" ? 34 : insets.bottom + 16,
     },
-    emptyContainer: {
+    emptyWrapper: {
       flex: 1,
+      minHeight: 400,
       justifyContent: "center",
+      alignItems: "center",
     },
     empty: {
       alignItems: "center",
