@@ -1,6 +1,6 @@
-import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
+import { ChevronRight, Clipboard, FileText, Plus, Trash2 } from "lucide-react-native";
 import React, { useState } from "react";
 import {
   FlatList,
@@ -104,7 +104,7 @@ export default function ReportsScreen() {
           onPress={() => setModalVisible(true)}
           activeOpacity={0.8}
         >
-          <Feather name="plus" size={22} color={colors.primaryForeground} />
+          <Plus size={22} color={colors.primaryForeground} />
         </TouchableOpacity>
       </View>
 
@@ -117,7 +117,7 @@ export default function ReportsScreen() {
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
           <View style={styles.empty}>
-            <Feather name="clipboard" size={52} color={colors.mutedForeground} />
+            <Clipboard size={52} color={colors.mutedForeground} />
             <Text style={styles.emptyTitle}>Nenhum relatório</Text>
             <Text style={styles.emptyText}>
               Toque no botão + para criar seu primeiro relatório
@@ -136,7 +136,7 @@ export default function ReportsScreen() {
               >
                 <View style={styles.cardLeft}>
                   <View style={styles.cardIcon}>
-                    <Feather name="file-text" size={20} color={colors.primary} />
+                    <FileText size={20} color={colors.primary} />
                   </View>
                   <View style={styles.cardInfo}>
                     <Text style={styles.cardTitle} numberOfLines={1}>
@@ -158,7 +158,7 @@ export default function ReportsScreen() {
                     </View>
                   </View>
                 </View>
-                <Feather name="chevron-right" size={18} color={colors.mutedForeground} />
+                <ChevronRight size={18} color={colors.mutedForeground} />
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -166,7 +166,7 @@ export default function ReportsScreen() {
                 onPress={() => handleDeletePress(item)}
                 activeOpacity={0.7}
               >
-                <Feather name="trash-2" size={17} color={colors.destructive} />
+                <Trash2 size={17} color={colors.destructive} />
               </TouchableOpacity>
             </View>
           );

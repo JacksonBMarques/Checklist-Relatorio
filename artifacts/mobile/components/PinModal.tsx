@@ -1,5 +1,5 @@
-import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
+import { Delete, Lock, X } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
 import {
   Modal,
@@ -123,11 +123,11 @@ export default function PinModal({
       <Pressable style={styles.overlay} onPress={onCancel}>
         <Pressable style={[styles.modal, shake && styles.shake]} onPress={() => {}}>
           <TouchableOpacity style={styles.closeBtn} onPress={onCancel}>
-            <Feather name="x" size={20} color={colors.mutedForeground} />
+            <X size={20} color={colors.mutedForeground} />
           </TouchableOpacity>
 
           <View style={styles.lockIcon}>
-            <Feather name="lock" size={28} color={colors.primary} />
+            <Lock size={28} color={colors.primary} />
           </View>
 
           <Text style={styles.heading}>{heading}</Text>
@@ -158,7 +158,7 @@ export default function PinModal({
                   activeOpacity={0.7}
                 >
                   {isDel ? (
-                    <Feather name="delete" size={20} color={colors.foreground} />
+                    <Delete size={20} color={colors.foreground} />
                   ) : (
                     <Text style={styles.keyText}>{d}</Text>
                   )}

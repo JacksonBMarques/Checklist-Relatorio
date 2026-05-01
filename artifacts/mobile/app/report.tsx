@@ -1,6 +1,19 @@
-import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
+import {
+  ArrowLeft,
+  Check,
+  ChevronDown,
+  ChevronUp,
+  Download,
+  FolderPlus,
+  Layers,
+  Pencil,
+  Plus,
+  RotateCcw,
+  Trash2,
+  X,
+} from "lucide-react-native";
 import React, { useState } from "react";
 import {
   KeyboardAvoidingView,
@@ -182,7 +195,7 @@ export default function ReportScreen() {
     >
       <View style={[styles.header, { paddingTop: topPad + 12 }]}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <Feather name="arrow-left" size={22} color={colors.foreground} />
+          <ArrowLeft size={22} color={colors.foreground} />
         </TouchableOpacity>
         <Text style={styles.headerTitle} numberOfLines={1}>
           {activeReport.title}
@@ -193,7 +206,7 @@ export default function ReportScreen() {
             onPress={handleClear}
             activeOpacity={0.8}
           >
-            <Feather name="rotate-ccw" size={15} color={colors.mutedForeground} />
+            <RotateCcw size={15} color={colors.mutedForeground} />
             <Text style={styles.clearBtnText}>Limpar</Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -202,7 +215,7 @@ export default function ReportScreen() {
             disabled={exporting}
             activeOpacity={0.8}
           >
-            <Feather name="download" size={15} color={colors.primaryForeground} />
+            <Download size={15} color={colors.primaryForeground} />
             <Text style={styles.exportBtnText}>Exportar</Text>
           </TouchableOpacity>
         </View>
@@ -219,7 +232,7 @@ export default function ReportScreen() {
       >
         {activeReport.categories.length === 0 ? (
           <View style={styles.empty}>
-            <Feather name="layers" size={48} color={colors.mutedForeground} />
+            <Layers size={48} color={colors.mutedForeground} />
             <Text style={styles.emptyTitle}>Nenhuma categoria</Text>
             <Text style={styles.emptyText}>
               Toque em "Nova Categoria" para começar a montar seu checklist
@@ -250,21 +263,20 @@ export default function ReportScreen() {
                     style={styles.iconBtn}
                     hitSlop={{ top: 8, bottom: 8, left: 8, right: 4 }}
                   >
-                    <Feather name="edit-2" size={15} color={colors.mutedForeground} />
+                    <Pencil size={15} color={colors.mutedForeground} />
                   </TouchableOpacity>
                   <TouchableOpacity
                     onPress={() => handleDeleteCategory(cat)}
                     style={styles.iconBtn}
                     hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
                   >
-                    <Feather name="trash-2" size={15} color={colors.destructive} />
+                    <Trash2 size={15} color={colors.destructive} />
                   </TouchableOpacity>
                   <View style={styles.iconBtn}>
-                    <Feather
-                      name={isCollapsed ? "chevron-down" : "chevron-up"}
-                      size={16}
-                      color={colors.mutedForeground}
-                    />
+                    {isCollapsed
+                      ? <ChevronDown size={16} color={colors.mutedForeground} />
+                      : <ChevronUp size={16} color={colors.mutedForeground} />
+                    }
                   </View>
                 </View>
               </TouchableOpacity>
@@ -279,7 +291,7 @@ export default function ReportScreen() {
                       onPress={() => handleDeleteItem(cat.id, item.id)}
                       style={styles.iconBtnSm}
                     >
-                      <Feather name="x" size={14} color={colors.mutedForeground} />
+                      <X size={14} color={colors.mutedForeground} />
                     </TouchableOpacity>
                   </View>
 
@@ -292,8 +304,7 @@ export default function ReportScreen() {
                       onPress={() => handleAnswer(cat, item, "sim")}
                       activeOpacity={0.8}
                     >
-                      <Feather
-                        name="check"
+                      <Check
                         size={16}
                         color={item.answer === "sim" ? "#fff" : colors.mutedForeground}
                       />
@@ -315,8 +326,7 @@ export default function ReportScreen() {
                       onPress={() => handleAnswer(cat, item, "nao")}
                       activeOpacity={0.8}
                     >
-                      <Feather
-                        name="x"
+                      <X
                         size={16}
                         color={item.answer === "nao" ? "#fff" : colors.mutedForeground}
                       />
@@ -349,7 +359,7 @@ export default function ReportScreen() {
                   onPress={() => { setAddItemModal(cat.id); setItemLabel(""); }}
                   activeOpacity={0.8}
                 >
-                  <Feather name="plus" size={15} color={colors.primary} />
+                  <Plus size={15} color={colors.primary} />
                   <Text style={styles.addItemBtnText}>Adicionar item</Text>
                 </TouchableOpacity>
               )}
@@ -363,7 +373,7 @@ export default function ReportScreen() {
           onPress={() => { setAddCatModal(true); setCatName(""); }}
           activeOpacity={0.8}
         >
-          <Feather name="folder-plus" size={18} color={colors.primaryForeground} />
+          <FolderPlus size={18} color={colors.primaryForeground} />
           <Text style={styles.addCatBtnText}>Nova Categoria</Text>
         </TouchableOpacity>
       </ScrollView>

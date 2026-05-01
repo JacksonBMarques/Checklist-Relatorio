@@ -1,6 +1,6 @@
-import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { useFocusEffect } from "expo-router";
+import { ChevronRight, Lock, Shield, Unlock } from "lucide-react-native";
 import React, { useCallback, useState } from "react";
 import {
   Modal,
@@ -48,7 +48,7 @@ export default function SettingsScreen() {
       <View style={[styles.container, styles.lockedContainer]}>
         <View style={styles.lockedContent}>
           <View style={styles.lockedIcon}>
-            <Feather name="lock" size={40} color={colors.primary} />
+            <Lock size={40} color={colors.primary} />
           </View>
           <Text style={styles.lockedTitle}>Configurações</Text>
           <Text style={styles.lockedText}>Esta área está protegida por PIN.</Text>
@@ -57,7 +57,7 @@ export default function SettingsScreen() {
             onPress={() => setPinModal("verify-entry")}
             activeOpacity={0.85}
           >
-            <Feather name="unlock" size={18} color={colors.primaryForeground} />
+            <Unlock size={18} color={colors.primaryForeground} />
             <Text style={styles.unlockBtnText}>Desbloquear</Text>
           </TouchableOpacity>
         </View>
@@ -99,7 +99,7 @@ export default function SettingsScreen() {
           >
             <View style={styles.rowLeft}>
               <View style={[styles.rowIcon, { backgroundColor: "#EEF4FF" }]}>
-                <Feather name="shield" size={18} color={colors.primary} />
+                <Shield size={18} color={colors.primary} />
               </View>
               <View>
                 <Text style={styles.rowLabel}>{hasPin ? "Alterar PIN" : "Definir PIN"}</Text>
@@ -108,7 +108,7 @@ export default function SettingsScreen() {
                 </Text>
               </View>
             </View>
-            <Feather name="chevron-right" size={18} color={colors.mutedForeground} />
+            <ChevronRight size={18} color={colors.mutedForeground} />
           </TouchableOpacity>
 
           {hasPin && (
@@ -128,11 +128,11 @@ export default function SettingsScreen() {
             >
               <View style={styles.rowLeft}>
                 <View style={[styles.rowIcon, { backgroundColor: "#FEF2F2" }]}>
-                  <Feather name="lock" size={18} color={colors.destructive} />
+                  <Lock size={18} color={colors.destructive} />
                 </View>
                 <Text style={[styles.rowLabel, { color: colors.destructive }]}>Remover PIN</Text>
               </View>
-              <Feather name="chevron-right" size={18} color={colors.mutedForeground} />
+              <ChevronRight size={18} color={colors.mutedForeground} />
             </TouchableOpacity>
           )}
         </View>

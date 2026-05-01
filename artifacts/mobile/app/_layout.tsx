@@ -32,8 +32,6 @@ function RootLayoutNav() {
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
-    // Explicit TTF require — most reliable way to register vector-icon fonts on Android
-    feather: require("@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/Feather.ttf"),
     Inter_400Regular,
     Inter_500Medium,
     Inter_600SemiBold,
