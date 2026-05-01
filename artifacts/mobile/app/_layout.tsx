@@ -16,22 +16,17 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ChecklistProvider } from "@/context/ChecklistContext";
 import { SettingsProvider } from "@/context/SettingsContext";
-import AutoReportTrigger from "@/components/AutoReportTrigger";
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
 const queryClient = new QueryClient();
 
 function RootLayoutNav() {
   return (
-    <>
-      <AutoReportTrigger />
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="report" options={{ headerShown: false }} />
-      </Stack>
-    </>
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen name="report" options={{ headerShown: false }} />
+    </Stack>
   );
 }
 
