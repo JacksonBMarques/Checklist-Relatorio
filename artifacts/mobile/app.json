@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "Checklist & Relatórios",
-    "slug": "mobile",
+    "name": "DiskReg Checklist",
+    "slug": "diskregchecklist",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "mobile",
+    "scheme": "diskregchecklist",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
@@ -14,11 +14,14 @@
       "backgroundColor": "#1A3A6B"
     },
     "ios": {
-      "supportsTablet": false
+      "supportsTablet": false,
+      "bundleIdentifier": "com.diskregchecklist.app"
     },
-    "android": {},
+    "android": {
+      "package": "com.diskregchecklist.app"
+    },
     "web": {
-      "favicon": "./assets/images/icon.png"
+      "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
       [
