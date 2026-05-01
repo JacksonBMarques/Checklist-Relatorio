@@ -129,10 +129,12 @@ export default function ReportScreen() {
     try {
       await exportReportAsCSV(activeReport!);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    } catch (e) {
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
       setConfirmModal({
         title: "Erro ao exportar",
-        message: "Não foi possível gerar o relatório.",
+        message: msg || "Não foi possível gerar o relatório.",
+        confirmLabel: "OK",
         onConfirm: () => setConfirmModal(null),
       });
     } finally {
@@ -446,7 +448,8 @@ export default function ReportScreen() {
                   styles.modalConfirm,
                   {
                     backgroundColor:
-                      confirmModal?.confirmLabel === "Limpar"
+                      confirmModal?.confirmLabel === "Limpar" ||
+                      confirmModal?.confirmLabel === "OK"
                         ? colors.primary
                         : colors.destructive,
                   },

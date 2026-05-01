@@ -219,8 +219,8 @@ importers:
         specifier: ~19.0.22
         version: 19.0.22(expo@54.0.34)(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0))
       expo-sharing:
-        specifier: ~13.0.1
-        version: 13.0.1(expo@54.0.34)
+        specifier: ~14.0.8
+        version: 14.0.8(expo@54.0.34)
       xlsx:
         specifier: ^0.18.5
         version: 0.18.5
@@ -3472,8 +3472,8 @@ packages:
     resolution: {integrity: sha512-vb5TBtskvEdzYuW79lATXutOEBfW5m6U4EFpNjCVZTnI7S//SAsLQkYEpn+EDfn84m6VQfzSGkIVR6YPaScKFA==}
     engines: {node: '>=20.16.0'}
 
-  expo-sharing@13.0.1:
-    resolution: {integrity: sha512-qych3Nw65wlFcnzE/gRrsdtvmdV0uF4U4qVMZBJYPG90vYyWh2QM9rp1gVu0KWOBc7N8CC2dSVYn4/BXqJy6Xw==}
+  expo-sharing@14.0.8:
+    resolution: {integrity: sha512-A1pPr2iBrxypFDCWVAESk532HK+db7MFXbvO2sCV9ienaFXAk7lIBm6bkqgE6vzRd9O3RGdEGzYx80cYlc089Q==}
     peerDependencies:
       expo: '*'
 
@@ -9331,7 +9331,7 @@ snapshots:
 
   expo-server@1.0.6: {}
 
-  expo-sharing@13.0.1(expo@54.0.34):
+  expo-sharing@14.0.8(expo@54.0.34):
     dependencies:
       expo: 54.0.34(@babel/core@7.29.0)(@expo/metro-runtime@6.1.2)(expo-router@6.0.23)(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)(typescript@5.9.3)
 
