@@ -21,6 +21,8 @@ import { useSettings } from "@/context/SettingsContext";
 import PinModal from "@/components/PinModal";
 import { useColors } from "@/hooks/useColors";
 
+const LOGO = require("../../assets/images/logo.png");
+
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("pt-BR", {
     day: "2-digit",
@@ -98,12 +100,17 @@ export default function ReportsScreen() {
 
   return (
     <View style={styles.container}>
+      {/* Background watermark */}
+      <Image
+        source={LOGO}
+        style={styles.bgImage}
+        resizeMode="contain"
+        pointerEvents="none"
+      />
+
       <View style={styles.header}>
         <View style={styles.headerBrand}>
-          <Image
-            source={require("../../assets/images/logo.png")}
-            style={styles.headerLogo}
-          />
+          <Image source={LOGO} style={styles.headerLogo} />
           <Text style={styles.headerTitle}>DiskReg Check</Text>
         </View>
         <TouchableOpacity
@@ -180,7 +187,6 @@ export default function ReportsScreen() {
         }}
       />
 
-      {/* Modal: Novo Relatório */}
       <Modal
         visible={modalVisible}
         transparent
@@ -225,7 +231,6 @@ export default function ReportsScreen() {
         </Pressable>
       </Modal>
 
-      {/* Modal: Confirmar exclusão */}
       <Modal
         visible={!!confirmModal}
         transparent
@@ -258,7 +263,6 @@ export default function ReportsScreen() {
         </Pressable>
       </Modal>
 
-      {/* PIN Modal */}
       <PinModal
         visible={pinModal}
         mode="verify"
@@ -288,6 +292,14 @@ function makeStyles(
     container: {
       flex: 1,
       backgroundColor: colors.background,
+    },
+    bgImage: {
+      position: "absolute",
+      width: "80%",
+      height: "55%",
+      top: "22%",
+      left: "10%",
+      opacity: 0.07,
     },
     header: {
       flexDirection: "row",
