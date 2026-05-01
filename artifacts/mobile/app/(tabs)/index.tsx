@@ -97,7 +97,7 @@ export default function ReportsScreen() {
   }
 
   const topPad = Platform.OS === "web" ? 67 : insets.top;
-  const bottomPad = Platform.OS === "web" ? 34 : insets.bottom + 16;
+  const bottomPad = Platform.OS === "web" ? 84 : insets.bottom + 80;
 
   return (
     <View style={styles.container}>
@@ -279,6 +279,7 @@ function makeStyles(colors: ReturnType<typeof useColors>, insets: ReturnType<typ
     listContent: {
       paddingHorizontal: 16,
       paddingTop: 16,
+      gap: 12,
     },
     emptyContainer: {
       flex: 1,
