@@ -1,6 +1,5 @@
 import * as FileSystem from "expo-file-system/legacy";
 import * as Sharing from "expo-sharing";
-import { Platform } from "react-native";
 import * as XLSX from "xlsx";
 
 import { Report } from "@/context/ChecklistContext";
@@ -79,11 +78,6 @@ export async function exportReportAsCSV(
   const filename = isBulk
     ? `relatorios_${Date.now()}.xlsx`
     : `relatorio_${slug || "sem_titulo"}_${Date.now()}.xlsx`;
-
-  if (Platform.OS === "web") {
-    XLSX.writeFile(workbook, filename);
-    return;
-  }
 
   // type:"binary" returns a JS string where charCode of each char is the byte value.
   // This is the most Hermes-safe output type — no Uint8Array bridge issues.

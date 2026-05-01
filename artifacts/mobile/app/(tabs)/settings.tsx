@@ -4,7 +4,6 @@ import { ChevronRight, Lock, Shield, Unlock } from "lucide-react-native";
 import React, { useCallback, useState } from "react";
 import {
   Modal,
-  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -81,11 +80,11 @@ export default function SettingsScreen() {
       style={styles.container}
       contentContainerStyle={[
         styles.content,
-        { paddingBottom: Platform.OS === "web" ? 34 : insets.bottom + 24 },
+        { paddingBottom: insets.bottom + 24 },
       ]}
       showsVerticalScrollIndicator={false}
     >
-      <View style={[styles.header, { paddingTop: Platform.OS === "web" ? 67 : insets.top }]}>
+      <View style={[styles.header, { paddingTop: insets.top }]}>
         <Text style={styles.headerTitle}>Configurações</Text>
       </View>
 

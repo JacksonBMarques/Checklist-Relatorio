@@ -18,7 +18,6 @@ import React, { useState } from "react";
 import {
   KeyboardAvoidingView,
   Modal,
-  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -185,12 +184,12 @@ export default function ReportScreen() {
     });
   }
 
-  const topPad = Platform.OS === "web" ? Math.max(insets.top, 67) : insets.top;
+  const topPad = insets.top;
 
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      behavior="height"
       keyboardVerticalOffset={0}
     >
       <View style={[styles.header, { paddingTop: topPad + 12 }]}>
@@ -225,7 +224,7 @@ export default function ReportScreen() {
         style={styles.scroll}
         contentContainerStyle={[
           styles.scrollContent,
-          { paddingBottom: Platform.OS === "web" ? 34 : insets.bottom + 100 },
+          { paddingBottom: insets.bottom + 100 },
         ]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}

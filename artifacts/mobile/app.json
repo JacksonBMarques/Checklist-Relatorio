@@ -1,8 +1,9 @@
 {
   "expo": {
-    "name": "DiskReg Checklist",
+    "name": "DiskReg Check",
     "slug": "diskregchecklist",
     "version": "1.0.0",
+    "platforms": ["android"],
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "diskregchecklist",
@@ -13,15 +14,17 @@
       "resizeMode": "contain",
       "backgroundColor": "#1A3A6B"
     },
-    "ios": {
-      "supportsTablet": false,
-      "bundleIdentifier": "com.diskregchecklist.app"
-    },
     "android": {
-      "package": "com.diskregchecklist.app"
-    },
-    "web": {
-      "favicon": "./assets/images/favicon.png"
+      "package": "com.diskregchecklist.app",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/icon.png",
+        "backgroundColor": "#1A3A6B"
+      },
+      "permissions": [
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE"
+      ]
     },
     "plugins": [
       [
@@ -30,8 +33,7 @@
           "origin": "https://replit.com/"
         }
       ],
-      "expo-font",
-      "expo-web-browser"
+      "expo-font"
     ],
     "experiments": {
       "typedRoutes": true,

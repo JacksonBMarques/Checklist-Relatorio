@@ -5,7 +5,6 @@ import React, { useState } from "react";
 import {
   Image,
   Modal,
-  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -96,7 +95,7 @@ export default function ReportsScreen() {
     });
   }
 
-  const topPad = Platform.OS === "web" ? Math.max(insets.top, 67) : insets.top;
+  const topPad = insets.top;
 
   return (
     <View style={styles.container}>
@@ -114,7 +113,7 @@ export default function ReportsScreen() {
         style={styles.scroll}
         contentContainerStyle={[
           styles.scrollContent,
-          { paddingBottom: Platform.OS === "web" ? 84 : insets.bottom + 100 },
+          { paddingBottom: insets.bottom + 100 },
         ]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
