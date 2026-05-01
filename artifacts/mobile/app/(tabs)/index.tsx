@@ -11,7 +11,6 @@ import {
   StyleSheet,
   Text,
   TextInput,
-  ScrollView,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -53,13 +52,11 @@ export default function ReportsScreen() {
 
   const [modalVisible, setModalVisible] = useState(false);
   const [newTitle, setNewTitle] = useState("");
-
   const [confirmModal, setConfirmModal] = useState<{
     title: string;
     message: string;
     onConfirm: () => void;
   } | null>(null);
-
   const [pinModal, setPinModal] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<(() => void) | null>(null);
 
@@ -104,16 +101,12 @@ export default function ReportsScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={[styles.header, { paddingTop: topPad + 16 }]}> 
+      <View style={[styles.header, { paddingTop: topPad + 16 }]}>
         <View style={styles.headerBrand}>
           <Image source={LOGO} style={styles.headerLogo} />
           <Text style={styles.headerTitle}>DiskReg Check</Text>
         </View>
-        <TouchableOpacity
-          style={styles.addBtn}
-          onPress={() => setModalVisible(true)}
-          activeOpacity={0.8}
-        >
+        <TouchableOpacity style={styles.addBtn} onPress={() => setModalVisible(true)} activeOpacity={0.8}>
           <Plus size={22} color={colors.primaryForeground} />
         </TouchableOpacity>
       </View>
@@ -122,72 +115,50 @@ export default function ReportsScreen() {
         <View style={styles.emptyContainer}>
           <Clipboard size={52} color={colors.mutedForeground} />
           <Text style={styles.emptyTitle}>Nenhum relatório</Text>
-          <Text style={styles.emptyText}>
-            Toque no botão + para criar seu primeiro relatório
-          </Text>
+          <Text style={styles.emptyText}>Toque no botão + para criar seu primeiro relatório</Text>
         </View>
       ) : (
-        <ScrollView
+        <FlatList
           style={styles.list}
-          contentContainerStyle={[styles.listContent, { paddingBottom: bottomPad }]}
+          data={reports}
+          keyExtractor={(item) => item.id}
           showsVerticalScrollIndicator={false}
-        >
-          {reports.map((item) => {
+          contentContainerStyle={[styles.listContent, { paddingBottom: bottomPad }]}
+          ItemSeparatorComponent={() => <View style={styles.separator} />}
+          renderItem={({ item }) => {
             const { answered, total } = getProgress(item);
             const pct = total > 0 ? answered / total : 0;
             return (
-              <View key={item.id} style={styles.card}>
-                <TouchableOpacity
-                  style={styles.cardTouchable}
-                  onPress={() => handleOpen(item)}
-                  activeOpacity={0.85}
-                >
+              <View style={styles.card}>
+                <TouchableOpacity style={styles.cardTouchable} onPress={() => handleOpen(item)} activeOpacity={0.85}>
                   <View style={styles.cardLeft}>
                     <View style={styles.cardIcon}>
                       <FileText size={20} color={colors.primary} />
                     </View>
                     <View style={styles.cardInfo}>
-                      <Text style={styles.cardTitle} numberOfLines={1}>
-                        {item.title}
-                      </Text>
+                      <Text style={styles.cardTitle} numberOfLines={1}>{item.title}</Text>
                       <Text style={styles.cardDate}>{formatDate(item.updatedAt)}</Text>
                       <View style={styles.progressRow}>
                         <View style={styles.progressBar}>
-                          <View
-                            style={[
-                              styles.progressFill,
-                              { width: `${pct * 100}%` as any },
-                            ]}
-                          />
+                          <View style={[styles.progressFill, { width: `${pct * 100}%` as any }]} />
                         </View>
-                        <Text style={styles.progressText}>
-                          {answered}/{total}
-                        </Text>
+                        <Text style={styles.progressText}>{answered}/{total}</Text>
                       </View>
                     </View>
                   </View>
                   <ChevronRight size={18} color={colors.mutedForeground} />
                 </TouchableOpacity>
 
-                <TouchableOpacity
-                  style={styles.deleteBtn}
-                  onPress={() => handleDeletePress(item)}
-                  activeOpacity={0.7}
-                >
+                <TouchableOpacity style={styles.deleteBtn} onPress={() => handleDeletePress(item)} activeOpacity={0.7}>
                   <Trash2 size={17} color={colors.destructive} />
                 </TouchableOpacity>
               </View>
             );
-          })}
-        </ScrollView>
+          }}
+        />
       )}
 
-      <Modal
-        visible={modalVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setModalVisible(false)}
-      >
+      <Modal visible={modalVisible} transparent animationType="fade" onRequestClose={() => setModalVisible(false)}>
         <Pressable style={styles.overlay} onPress={() => setModalVisible(false)}>
           <Pressable style={styles.modal} onPress={() => {}}>
             <Text style={styles.modalTitle}>Novo Relatório</Text>
@@ -202,20 +173,11 @@ export default function ReportsScreen() {
               onSubmitEditing={handleCreate}
             />
             <View style={styles.modalActions}>
-              <TouchableOpacity
-                style={styles.modalCancel}
-                onPress={() => {
-                  setModalVisible(false);
-                  setNewTitle("");
-                }}
-              >
+              <TouchableOpacity style={styles.modalCancel} onPress={() => { setModalVisible(false); setNewTitle(""); }}>
                 <Text style={styles.modalCancelText}>Cancelar</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[
-                  styles.modalConfirm,
-                  !newTitle.trim() && styles.modalConfirmDisabled,
-                ]}
+                style={[styles.modalConfirm, !newTitle.trim() && styles.modalConfirmDisabled]}
                 onPress={handleCreate}
                 disabled={!newTitle.trim()}
               >
@@ -226,21 +188,13 @@ export default function ReportsScreen() {
         </Pressable>
       </Modal>
 
-      <Modal
-        visible={!!confirmModal}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setConfirmModal(null)}
-      >
+      <Modal visible={!!confirmModal} transparent animationType="fade" onRequestClose={() => setConfirmModal(null)}>
         <Pressable style={styles.overlay} onPress={() => setConfirmModal(null)}>
           <Pressable style={styles.modal} onPress={() => {}}>
             <Text style={styles.modalTitle}>{confirmModal?.title}</Text>
             <Text style={styles.modalMessage}>{confirmModal?.message}</Text>
             <View style={styles.modalActions}>
-              <TouchableOpacity
-                style={styles.modalCancel}
-                onPress={() => setConfirmModal(null)}
-              >
+              <TouchableOpacity style={styles.modalCancel} onPress={() => setConfirmModal(null)}>
                 <Text style={styles.modalCancelText}>Cancelar</Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -278,10 +232,7 @@ export default function ReportsScreen() {
   );
 }
 
-function makeStyles(
-  colors: ReturnType<typeof useColors>,
-  insets: ReturnType<typeof useSafeAreaInsets>
-) {
+function makeStyles(colors: ReturnType<typeof useColors>, insets: ReturnType<typeof useSafeAreaInsets>) {
   return StyleSheet.create({
     container: {
       flex: 1,
@@ -324,6 +275,16 @@ function makeStyles(
       justifyContent: "center",
       overflow: "hidden",
     },
+    list: {
+      flex: 1,
+    },
+    listContent: {
+      paddingHorizontal: 16,
+      paddingTop: 16,
+    },
+    separator: {
+      height: 12,
+    },
     emptyContainer: {
       flex: 1,
       alignItems: "center",
@@ -343,13 +304,6 @@ function makeStyles(
       color: colors.mutedForeground,
       textAlign: "center",
       lineHeight: 20,
-    },
-    listContent: {
-      paddingHorizontal: 16,
-      paddingTop: 16,
-    },
-    separator: {
-      height: 12,
     },
     card: {
       backgroundColor: colors.card,
