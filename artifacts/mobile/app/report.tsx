@@ -3,8 +3,6 @@ import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
-  Alert,
-  FlatList,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -53,6 +51,12 @@ export default function ReportScreen() {
   const [pinModal, setPinModal] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<(() => void) | null>(null);
 
+  const [confirmModal, setConfirmModal] = useState<{
+    title: string;
+    message?: string;
+    onConfirm: () => void;
+  } | null>(null);
+
   const styles = makeStyles(colors, insets);
 
   if (!activeReport) {
@@ -96,25 +100,19 @@ export default function ReportScreen() {
   }
 
   function handleDeleteItem(catId: string, itemId: string) {
-    Alert.alert("Excluir item?", undefined, [
-      { text: "Cancelar", style: "cancel" },
-      {
-        text: "Excluir",
-        style: "destructive",
-        onPress: () => requestPinThen(() => deleteItem(activeReport!.id, catId, itemId)),
-      },
-    ]);
+    setConfirmModal({
+      title: "Excluir item?",
+      message: "Esta ação não pode ser desfeita.",
+      onConfirm: () => requestPinThen(() => deleteItem(activeReport!.id, catId, itemId)),
+    });
   }
 
   function handleDeleteCategory(cat: Category) {
-    Alert.alert("Excluir categoria?", `"${cat.name}" e todos os seus itens serão removidos.`, [
-      { text: "Cancelar", style: "cancel" },
-      {
-        text: "Excluir",
-        style: "destructive",
-        onPress: () => requestPinThen(() => deleteCategory(activeReport!.id, cat.id)),
-      },
-    ]);
+    setConfirmModal({
+      title: "Excluir categoria?",
+      message: `"${cat.name}" e todos os seus itens serão removidos.`,
+      onConfirm: () => requestPinThen(() => deleteCategory(activeReport!.id, cat.id)),
+    });
   }
 
   function handleEditCategory() {
@@ -130,7 +128,11 @@ export default function ReportScreen() {
       await exportReportAsCSV(activeReport!);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch (e) {
-      Alert.alert("Erro ao exportar", "Não foi possível gerar o relatório.");
+      setConfirmModal({
+        title: "Erro ao exportar",
+        message: "Não foi possível gerar o relatório.",
+        onConfirm: () => setConfirmModal(null),
+      });
     } finally {
       setExporting(false);
     }
@@ -389,6 +391,40 @@ export default function ReportScreen() {
         </Pressable>
       </Modal>
 
+      <Modal
+        visible={!!confirmModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setConfirmModal(null)}
+      >
+        <Pressable style={styles.overlay} onPress={() => setConfirmModal(null)}>
+          <Pressable style={styles.modal} onPress={() => {}}>
+            <Text style={styles.modalTitle}>{confirmModal?.title}</Text>
+            {!!confirmModal?.message && (
+              <Text style={styles.confirmMessage}>{confirmModal.message}</Text>
+            )}
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                style={styles.modalCancel}
+                onPress={() => setConfirmModal(null)}
+              >
+                <Text style={styles.modalCancelText}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalConfirm, { backgroundColor: colors.destructive }]}
+                onPress={() => {
+                  const action = confirmModal?.onConfirm;
+                  setConfirmModal(null);
+                  action?.();
+                }}
+              >
+                <Text style={styles.modalConfirmText}>Excluir</Text>
+              </TouchableOpacity>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
       <PinModal
         visible={pinModal}
         mode="verify"
@@ -634,6 +670,12 @@ function makeStyles(colors: ReturnType<typeof useColors>, insets: ReturnType<typ
       fontSize: 18,
       fontFamily: "Inter_700Bold",
       color: colors.foreground,
+    },
+    confirmMessage: {
+      fontSize: 14,
+      fontFamily: "Inter_400Regular",
+      color: colors.mutedForeground,
+      lineHeight: 20,
     },
     modalInput: {
       borderWidth: 1,

@@ -3,7 +3,6 @@ import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
-  Alert,
   FlatList,
   Modal,
   Platform,
@@ -47,6 +46,7 @@ export default function ReportsScreen() {
 
   const [modalVisible, setModalVisible] = useState(false);
   const [newTitle, setNewTitle] = useState("");
+  const [confirmModal, setConfirmModal] = useState<{ title: string; message: string; onConfirm: () => void } | null>(null);
 
   const styles = makeStyles(colors, insets);
 
@@ -66,21 +66,14 @@ export default function ReportsScreen() {
   }
 
   function handleDelete(report: Report) {
-    Alert.alert(
-      "Excluir Relatório",
-      `Tem certeza que deseja excluir "${report.title}"?`,
-      [
-        { text: "Cancelar", style: "cancel" },
-        {
-          text: "Excluir",
-          style: "destructive",
-          onPress: () => {
-            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-            deleteReport(report.id);
-          },
-        },
-      ]
-    );
+    setConfirmModal({
+      title: "Excluir Relatório",
+      message: `Tem certeza que deseja excluir "${report.title}"?`,
+      onConfirm: () => {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+        deleteReport(report.id);
+      },
+    });
   }
 
   return (
@@ -177,6 +170,35 @@ export default function ReportsScreen() {
                 disabled={!newTitle.trim()}
               >
                 <Text style={styles.modalConfirmText}>Criar</Text>
+              </TouchableOpacity>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      <Modal
+        visible={!!confirmModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setConfirmModal(null)}
+      >
+        <Pressable style={styles.overlay} onPress={() => setConfirmModal(null)}>
+          <Pressable style={styles.modal} onPress={() => {}}>
+            <Text style={styles.modalTitle}>{confirmModal?.title}</Text>
+            <Text style={styles.modalMessage}>{confirmModal?.message}</Text>
+            <View style={styles.modalActions}>
+              <TouchableOpacity style={styles.modalCancel} onPress={() => setConfirmModal(null)}>
+                <Text style={styles.modalCancelText}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalConfirm, { backgroundColor: "#DC2626" }]}
+                onPress={() => {
+                  const action = confirmModal?.onConfirm;
+                  setConfirmModal(null);
+                  action?.();
+                }}
+              >
+                <Text style={styles.modalConfirmText}>Excluir</Text>
               </TouchableOpacity>
             </View>
           </Pressable>
@@ -331,6 +353,12 @@ function makeStyles(colors: ReturnType<typeof useColors>, insets: ReturnType<typ
       fontSize: 18,
       fontFamily: "Inter_700Bold",
       color: colors.foreground,
+    },
+    modalMessage: {
+      fontSize: 14,
+      fontFamily: "Inter_400Regular",
+      color: colors.mutedForeground,
+      lineHeight: 20,
     },
     modalInput: {
       borderWidth: 1,

@@ -2,8 +2,9 @@ import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import React, { useState } from "react";
 import {
-  Alert,
+  Modal,
   Platform,
+  Pressable,
   ScrollView,
   StyleSheet,
   Switch,
@@ -28,6 +29,8 @@ export default function SettingsScreen() {
   const [pinModal, setPinModal] = useState<"verify-entry" | "set" | "change" | null>(null);
   const [settingsUnlocked, setSettingsUnlocked] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [infoModal, setInfoModal] = useState<{ title: string; message: string } | null>(null);
+  const [confirmModal, setConfirmModal] = useState<{ title: string; message: string; onConfirm: () => void } | null>(null);
 
   const [pendingScheduleEnabled, setPendingScheduleEnabled] = useState(scheduleEnabled);
   const [pendingHour, setPendingHour] = useState(scheduleTime.hour);
@@ -49,19 +52,19 @@ export default function SettingsScreen() {
       minute: pendingMinute,
     });
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    Alert.alert(
-      "Salvo",
-      pendingScheduleEnabled
+    setInfoModal({
+      title: "Salvo",
+      message: pendingScheduleEnabled
         ? `Relatório será gerado automaticamente às ${String(pendingHour).padStart(2, "0")}:${String(pendingMinute).padStart(2, "0")} todos os dias.`
-        : "Geração automática desativada."
-    );
+        : "Geração automática desativada.",
+    });
   }
 
   async function handleDownloadLast7Days() {
     const cutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
     const recent = reports.filter((r) => new Date(r.createdAt).getTime() >= cutoff);
     if (recent.length === 0) {
-      Alert.alert("Sem relatórios", "Nenhum relatório dos últimos 7 dias encontrado.");
+      setInfoModal({ title: "Sem relatórios", message: "Nenhum relatório dos últimos 7 dias encontrado." });
       return;
     }
     setExporting(true);
@@ -69,7 +72,7 @@ export default function SettingsScreen() {
       await exportReportAsCSV(recent[0], recent);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch {
-      Alert.alert("Erro", "Não foi possível exportar os relatórios.");
+      setInfoModal({ title: "Erro", message: "Não foi possível exportar os relatórios." });
     } finally {
       setExporting(false);
     }
@@ -148,21 +151,14 @@ export default function SettingsScreen() {
             <TouchableOpacity
               style={[styles.row, styles.rowLast]}
               onPress={() => {
-                Alert.alert(
-                  "Remover PIN",
-                  "Tem certeza? As configurações ficarão sem proteção.",
-                  [
-                    { text: "Cancelar", style: "cancel" },
-                    {
-                      text: "Remover",
-                      style: "destructive",
-                      onPress: async () => {
-                        await clearPin();
-                        setSettingsUnlocked(false);
-                      },
-                    },
-                  ]
-                );
+                setConfirmModal({
+                  title: "Remover PIN",
+                  message: "Tem certeza? As configurações ficarão sem proteção.",
+                  onConfirm: async () => {
+                    await clearPin();
+                    setSettingsUnlocked(false);
+                  },
+                });
               }}
               activeOpacity={0.8}
             >
@@ -275,7 +271,7 @@ export default function SettingsScreen() {
         mode="set"
         onSuccess={() => {
           setPinModal(null);
-          Alert.alert("PIN definido", "Configurações protegidas com sucesso.");
+          setInfoModal({ title: "PIN definido", message: "Configurações protegidas com sucesso." });
         }}
         onCancel={() => setPinModal(null)}
       />
@@ -284,10 +280,46 @@ export default function SettingsScreen() {
         mode="change"
         onSuccess={() => {
           setPinModal(null);
-          Alert.alert("PIN alterado", "Novo PIN salvo com sucesso.");
+          setInfoModal({ title: "PIN alterado", message: "Novo PIN salvo com sucesso." });
         }}
         onCancel={() => setPinModal(null)}
       />
+
+      <Modal visible={!!infoModal} transparent animationType="fade" onRequestClose={() => setInfoModal(null)}>
+        <Pressable style={styles.overlay} onPress={() => setInfoModal(null)}>
+          <Pressable style={styles.modal} onPress={() => {}}>
+            <Text style={styles.modalTitle}>{infoModal?.title}</Text>
+            <Text style={styles.modalMessage}>{infoModal?.message}</Text>
+            <TouchableOpacity style={styles.modalOk} onPress={() => setInfoModal(null)}>
+              <Text style={styles.modalOkText}>OK</Text>
+            </TouchableOpacity>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      <Modal visible={!!confirmModal} transparent animationType="fade" onRequestClose={() => setConfirmModal(null)}>
+        <Pressable style={styles.overlay} onPress={() => setConfirmModal(null)}>
+          <Pressable style={styles.modal} onPress={() => {}}>
+            <Text style={styles.modalTitle}>{confirmModal?.title}</Text>
+            <Text style={styles.modalMessage}>{confirmModal?.message}</Text>
+            <View style={styles.modalActions}>
+              <TouchableOpacity style={styles.modalCancel} onPress={() => setConfirmModal(null)}>
+                <Text style={styles.modalCancelText}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalConfirm, { backgroundColor: "#DC2626" }]}
+                onPress={() => {
+                  const action = confirmModal?.onConfirm;
+                  setConfirmModal(null);
+                  action?.();
+                }}
+              >
+                <Text style={styles.modalConfirmText}>Remover</Text>
+              </TouchableOpacity>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </ScrollView>
   );
 }
@@ -487,5 +519,45 @@ function makeStyles(colors: ReturnType<typeof useColors>, insets: ReturnType<typ
       marginTop: 12,
     },
     saveBtnText: { fontSize: 15, fontFamily: "Inter_600SemiBold", color: colors.primaryForeground },
+    overlay: {
+      flex: 1,
+      backgroundColor: "rgba(0,0,0,0.5)",
+      justifyContent: "center",
+      alignItems: "center",
+      padding: 24,
+    },
+    modal: {
+      backgroundColor: colors.card,
+      borderRadius: 16,
+      padding: 24,
+      width: "100%",
+      maxWidth: 380,
+      gap: 16,
+    },
+    modalTitle: { fontSize: 18, fontFamily: "Inter_700Bold", color: colors.foreground },
+    modalMessage: { fontSize: 14, fontFamily: "Inter_400Regular", color: colors.mutedForeground, lineHeight: 20 },
+    modalOk: {
+      padding: 12,
+      borderRadius: 10,
+      backgroundColor: colors.primary,
+      alignItems: "center",
+    },
+    modalOkText: { fontSize: 15, fontFamily: "Inter_600SemiBold", color: colors.primaryForeground },
+    modalActions: { flexDirection: "row", gap: 12 },
+    modalCancel: {
+      flex: 1,
+      padding: 12,
+      borderRadius: 10,
+      backgroundColor: colors.muted,
+      alignItems: "center",
+    },
+    modalCancelText: { fontSize: 15, fontFamily: "Inter_500Medium", color: colors.mutedForeground },
+    modalConfirm: {
+      flex: 1,
+      padding: 12,
+      borderRadius: 10,
+      alignItems: "center",
+    },
+    modalConfirmText: { fontSize: 15, fontFamily: "Inter_600SemiBold", color: "#fff" },
   });
 }
