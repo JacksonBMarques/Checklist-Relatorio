@@ -29,6 +29,7 @@ export default function ReportScreen() {
   const { hasPin, validatePin } = useSettings();
   const {
     activeReport,
+    updateReport,
     addCategory,
     updateCategoryName,
     deleteCategory,
@@ -54,6 +55,7 @@ export default function ReportScreen() {
   const [confirmModal, setConfirmModal] = useState<{
     title: string;
     message?: string;
+    confirmLabel?: string;
     onConfirm: () => void;
   } | null>(null);
 
@@ -138,6 +140,25 @@ export default function ReportScreen() {
     }
   }
 
+  function handleClear() {
+    setConfirmModal({
+      title: "Limpar respostas?",
+      message: "Todas as respostas (Sim/Não) e observações serão apagadas. As categorias e itens serão mantidos.",
+      confirmLabel: "Limpar",
+      onConfirm: () => {
+        const cleared = {
+          ...activeReport!,
+          categories: activeReport!.categories.map((cat) => ({
+            ...cat,
+            items: cat.items.map((item) => ({ ...item, answer: null, observation: "" })),
+          })),
+        };
+        updateReport(cleared);
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      },
+    });
+  }
+
   const topPad = Platform.OS === "web" ? Math.max(insets.top, 67) : insets.top;
 
   return (
@@ -153,15 +174,25 @@ export default function ReportScreen() {
         <Text style={styles.headerTitle} numberOfLines={1}>
           {activeReport.title}
         </Text>
-        <TouchableOpacity
-          style={[styles.exportBtn, exporting && styles.exportBtnDisabled]}
-          onPress={handleExport}
-          disabled={exporting}
-          activeOpacity={0.8}
-        >
-          <Feather name="download" size={16} color={colors.primaryForeground} />
-          <Text style={styles.exportBtnText}>Exportar</Text>
-        </TouchableOpacity>
+        <View style={styles.headerActions}>
+          <TouchableOpacity
+            style={styles.clearBtn}
+            onPress={handleClear}
+            activeOpacity={0.8}
+          >
+            <Feather name="rotate-ccw" size={15} color={colors.mutedForeground} />
+            <Text style={styles.clearBtnText}>Limpar</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.exportBtn, exporting && styles.exportBtnDisabled]}
+            onPress={handleExport}
+            disabled={exporting}
+            activeOpacity={0.8}
+          >
+            <Feather name="download" size={15} color={colors.primaryForeground} />
+            <Text style={styles.exportBtnText}>Exportar</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView
@@ -411,14 +442,24 @@ export default function ReportScreen() {
                 <Text style={styles.modalCancelText}>Cancelar</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.modalConfirm, { backgroundColor: colors.destructive }]}
+                style={[
+                  styles.modalConfirm,
+                  {
+                    backgroundColor:
+                      confirmModal?.confirmLabel === "Limpar"
+                        ? colors.primary
+                        : colors.destructive,
+                  },
+                ]}
                 onPress={() => {
                   const action = confirmModal?.onConfirm;
                   setConfirmModal(null);
                   action?.();
                 }}
               >
-                <Text style={styles.modalConfirmText}>Excluir</Text>
+                <Text style={styles.modalConfirmText}>
+                  {confirmModal?.confirmLabel ?? "Excluir"}
+                </Text>
               </TouchableOpacity>
             </View>
           </Pressable>
@@ -469,6 +510,27 @@ function makeStyles(colors: ReturnType<typeof useColors>, insets: ReturnType<typ
       fontSize: 18,
       fontFamily: "Inter_700Bold",
       color: colors.foreground,
+    },
+    headerActions: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+    },
+    clearBtn: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 5,
+      borderWidth: 1,
+      borderColor: colors.border,
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+      borderRadius: 20,
+      backgroundColor: colors.card,
+    },
+    clearBtnText: {
+      fontSize: 13,
+      fontFamily: "Inter_500Medium",
+      color: colors.mutedForeground,
     },
     exportBtn: {
       flexDirection: "row",
