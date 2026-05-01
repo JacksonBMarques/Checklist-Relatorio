@@ -241,6 +241,7 @@ function makeStyles(
       paddingVertical: 14,
       borderRadius: 12,
       marginTop: 8,
+      overflow: "hidden",
     },
     unlockBtnText: {
       fontSize: 16,
@@ -332,6 +333,7 @@ function makeStyles(
       borderRadius: 10,
       backgroundColor: colors.primary,
       alignItems: "center",
+      overflow: "hidden",
     },
     modalOkText: { fontSize: 15, fontFamily: "Inter_600SemiBold", color: colors.primaryForeground },
     modalActions: { flexDirection: "row", gap: 12 },
@@ -341,6 +343,7 @@ function makeStyles(
       borderRadius: 10,
       backgroundColor: colors.muted,
       alignItems: "center",
+      overflow: "hidden",
     },
     modalCancelText: {
       fontSize: 15,
@@ -352,6 +355,7 @@ function makeStyles(
       padding: 12,
       borderRadius: 10,
       alignItems: "center",
+      overflow: "hidden",
     },
     modalConfirmText: { fontSize: 15, fontFamily: "Inter_600SemiBold", color: "#fff" },
   });

@@ -254,6 +254,7 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       backgroundColor: colors.muted,
       alignItems: "center",
       justifyContent: "center",
+      overflow: "hidden",
     },
     keyDel: {
       backgroundColor: colors.secondary,

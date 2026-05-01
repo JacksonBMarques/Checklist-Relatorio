@@ -529,6 +529,7 @@ function makeStyles(colors: ReturnType<typeof useColors>, insets: ReturnType<typ
       paddingVertical: 8,
       borderRadius: 20,
       backgroundColor: colors.card,
+      overflow: "hidden",
     },
     clearBtnText: {
       fontSize: 13,
@@ -543,6 +544,7 @@ function makeStyles(colors: ReturnType<typeof useColors>, insets: ReturnType<typ
       paddingHorizontal: 14,
       paddingVertical: 8,
       borderRadius: 20,
+      overflow: "hidden",
     },
     exportBtnDisabled: { opacity: 0.6 },
     exportBtnText: {
@@ -659,6 +661,7 @@ function makeStyles(colors: ReturnType<typeof useColors>, insets: ReturnType<typ
       borderWidth: 1,
       borderColor: colors.border,
       backgroundColor: colors.muted,
+      overflow: "hidden",
     },
     answerBtnSim: {
       backgroundColor: "#16A34A",
@@ -710,6 +713,7 @@ function makeStyles(colors: ReturnType<typeof useColors>, insets: ReturnType<typ
       borderRadius: 12,
       paddingVertical: 14,
       marginTop: 4,
+      overflow: "hidden",
     },
     addCatBtnText: {
       fontSize: 15,
@@ -759,6 +763,7 @@ function makeStyles(colors: ReturnType<typeof useColors>, insets: ReturnType<typ
       borderRadius: 10,
       backgroundColor: colors.muted,
       alignItems: "center",
+      overflow: "hidden",
     },
     modalCancelText: {
       fontSize: 15,
@@ -771,6 +776,7 @@ function makeStyles(colors: ReturnType<typeof useColors>, insets: ReturnType<typ
       borderRadius: 10,
       backgroundColor: colors.primary,
       alignItems: "center",
+      overflow: "hidden",
     },
     modalConfirmText: {
       fontSize: 15,

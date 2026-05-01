@@ -238,6 +238,7 @@ function makeStyles(colors: ReturnType<typeof useColors>, insets: ReturnType<typ
       borderRadius: 20,
       alignItems: "center",
       justifyContent: "center",
+      overflow: "hidden",
     },
     listContent: {
       paddingHorizontal: 16,
@@ -380,6 +381,7 @@ function makeStyles(colors: ReturnType<typeof useColors>, insets: ReturnType<typ
       borderRadius: 10,
       backgroundColor: colors.muted,
       alignItems: "center",
+      overflow: "hidden",
     },
     modalCancelText: {
       fontSize: 15,
@@ -392,6 +394,7 @@ function makeStyles(colors: ReturnType<typeof useColors>, insets: ReturnType<typ
       borderRadius: 10,
       backgroundColor: colors.primary,
       alignItems: "center",
+      overflow: "hidden",
     },
     modalConfirmDisabled: {
       opacity: 0.5,
