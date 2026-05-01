@@ -103,7 +103,7 @@ export default function ReportsScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={[styles.header, { paddingTop: topPad + 16 }]}>
+      <View style={[styles.header, { paddingTop: topPad + 16 }]}> 
         <View style={styles.headerBrand}>
           <Image source={LOGO} style={styles.headerLogo} />
           <Text style={styles.headerTitle}>DiskReg Check</Text>
@@ -131,6 +131,7 @@ export default function ReportsScreen() {
           keyExtractor={(item) => item.id}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={[styles.listContent, { paddingBottom: bottomPad }]}
+          ItemSeparatorComponent={() => <View style={styles.separator} />}
           renderItem={({ item }) => {
             const { answered, total } = getProgress(item);
             const pct = total > 0 ? answered / total : 0;
@@ -347,10 +348,12 @@ function makeStyles(
       paddingHorizontal: 16,
       paddingTop: 16,
     },
+    separator: {
+      height: 12,
+    },
     card: {
       backgroundColor: colors.card,
       borderRadius: 12,
-      marginBottom: 12,
       flexDirection: "row",
       alignItems: "center",
       borderWidth: 1,
