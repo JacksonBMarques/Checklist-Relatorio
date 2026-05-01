@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 
 export interface ChecklistItem {
   id: string;
@@ -45,9 +45,16 @@ function generateId(): string {
   return Date.now().toString() + Math.random().toString(36).substr(2, 9);
 }
 
+function save(reports: Report[]) {
+  AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(reports));
+}
+
 export function ChecklistProvider({ children }: { children: React.ReactNode }) {
   const [reports, setReports] = useState<Report[]>([]);
-  const [activeReport, setActiveReport] = useState<Report | null>(null);
+  const [activeReportId, setActiveReportId] = useState<string | null>(null);
+
+  const reportsRef = useRef<Report[]>([]);
+  reportsRef.current = reports;
 
   useEffect(() => {
     AsyncStorage.getItem(STORAGE_KEY).then((raw) => {
@@ -59,9 +66,18 @@ export function ChecklistProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
-  const persist = useCallback((updated: Report[]) => {
-    setReports(updated);
-    AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+  const activeReport = reports.find((r) => r.id === activeReportId) ?? null;
+
+  const setActiveReport = useCallback((report: Report | null) => {
+    setActiveReportId(report?.id ?? null);
+  }, []);
+
+  const mutate = useCallback((updater: (prev: Report[]) => Report[]) => {
+    setReports((prev) => {
+      const next = updater(prev);
+      save(next);
+      return next;
+    });
   }, []);
 
   const createReport = useCallback((title: string): Report => {
@@ -72,140 +88,111 @@ export function ChecklistProvider({ children }: { children: React.ReactNode }) {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
-    persist((prev) => {
-      const updated = [report, ...prev];
-      persist(updated);
-      return updated;
-    });
+    mutate((prev) => [report, ...prev]);
     return report;
-  }, [persist]);
+  }, [mutate]);
 
   const updateReport = useCallback((report: Report) => {
     const updated = { ...report, updatedAt: new Date().toISOString() };
-    setReports((prev) => {
-      const next = prev.map((r) => (r.id === report.id ? updated : r));
-      AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-      return next;
-    });
-    setActiveReport((prev) => (prev?.id === report.id ? updated : prev));
-  }, []);
+    mutate((prev) => prev.map((r) => (r.id === updated.id ? updated : r)));
+  }, [mutate]);
 
   const deleteReport = useCallback((id: string) => {
-    setReports((prev) => {
-      const next = prev.filter((r) => r.id !== id);
-      AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-      return next;
-    });
-    setActiveReport((prev) => (prev?.id === id ? null : prev));
-  }, []);
+    mutate((prev) => prev.filter((r) => r.id !== id));
+    setActiveReportId((prev) => (prev === id ? null : prev));
+  }, [mutate]);
 
   const addCategory = useCallback((reportId: string, name: string) => {
-    setReports((prev) => {
-      const next = prev.map((r) => {
-        if (r.id !== reportId) return r;
-        const cat: Category = { id: generateId(), name, items: [] };
-        const updated = { ...r, categories: [...r.categories, cat], updatedAt: new Date().toISOString() };
-        setActiveReport((a) => (a?.id === reportId ? updated : a));
-        return updated;
-      });
-      AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-      return next;
-    });
-  }, []);
+    const cat: Category = { id: generateId(), name, items: [] };
+    mutate((prev) =>
+      prev.map((r) =>
+        r.id === reportId
+          ? { ...r, categories: [...r.categories, cat], updatedAt: new Date().toISOString() }
+          : r
+      )
+    );
+  }, [mutate]);
 
   const updateCategoryName = useCallback((reportId: string, categoryId: string, name: string) => {
-    setReports((prev) => {
-      const next = prev.map((r) => {
-        if (r.id !== reportId) return r;
-        const updated = {
-          ...r,
-          categories: r.categories.map((c) => (c.id === categoryId ? { ...c, name } : c)),
-          updatedAt: new Date().toISOString(),
-        };
-        setActiveReport((a) => (a?.id === reportId ? updated : a));
-        return updated;
-      });
-      AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-      return next;
-    });
-  }, []);
+    mutate((prev) =>
+      prev.map((r) =>
+        r.id === reportId
+          ? {
+              ...r,
+              categories: r.categories.map((c) => (c.id === categoryId ? { ...c, name } : c)),
+              updatedAt: new Date().toISOString(),
+            }
+          : r
+      )
+    );
+  }, [mutate]);
 
   const deleteCategory = useCallback((reportId: string, categoryId: string) => {
-    setReports((prev) => {
-      const next = prev.map((r) => {
-        if (r.id !== reportId) return r;
-        const updated = {
-          ...r,
-          categories: r.categories.filter((c) => c.id !== categoryId),
-          updatedAt: new Date().toISOString(),
-        };
-        setActiveReport((a) => (a?.id === reportId ? updated : a));
-        return updated;
-      });
-      AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-      return next;
-    });
-  }, []);
+    mutate((prev) =>
+      prev.map((r) =>
+        r.id === reportId
+          ? {
+              ...r,
+              categories: r.categories.filter((c) => c.id !== categoryId),
+              updatedAt: new Date().toISOString(),
+            }
+          : r
+      )
+    );
+  }, [mutate]);
 
   const addItem = useCallback((reportId: string, categoryId: string, label: string) => {
-    setReports((prev) => {
-      const next = prev.map((r) => {
-        if (r.id !== reportId) return r;
-        const item: ChecklistItem = { id: generateId(), label, answer: null, observation: "" };
-        const updated = {
-          ...r,
-          categories: r.categories.map((c) =>
-            c.id === categoryId ? { ...c, items: [...c.items, item] } : c
-          ),
-          updatedAt: new Date().toISOString(),
-        };
-        setActiveReport((a) => (a?.id === reportId ? updated : a));
-        return updated;
-      });
-      AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-      return next;
-    });
-  }, []);
+    const item: ChecklistItem = { id: generateId(), label, answer: null, observation: "" };
+    mutate((prev) =>
+      prev.map((r) =>
+        r.id === reportId
+          ? {
+              ...r,
+              categories: r.categories.map((c) =>
+                c.id === categoryId ? { ...c, items: [...c.items, item] } : c
+              ),
+              updatedAt: new Date().toISOString(),
+            }
+          : r
+      )
+    );
+  }, [mutate]);
 
   const updateItem = useCallback((reportId: string, categoryId: string, item: ChecklistItem) => {
-    setReports((prev) => {
-      const next = prev.map((r) => {
-        if (r.id !== reportId) return r;
-        const updated = {
-          ...r,
-          categories: r.categories.map((c) =>
-            c.id === categoryId
-              ? { ...c, items: c.items.map((i) => (i.id === item.id ? item : i)) }
-              : c
-          ),
-          updatedAt: new Date().toISOString(),
-        };
-        setActiveReport((a) => (a?.id === reportId ? updated : a));
-        return updated;
-      });
-      AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-      return next;
-    });
-  }, []);
+    mutate((prev) =>
+      prev.map((r) =>
+        r.id === reportId
+          ? {
+              ...r,
+              categories: r.categories.map((c) =>
+                c.id === categoryId
+                  ? { ...c, items: c.items.map((i) => (i.id === item.id ? item : i)) }
+                  : c
+              ),
+              updatedAt: new Date().toISOString(),
+            }
+          : r
+      )
+    );
+  }, [mutate]);
 
   const deleteItem = useCallback((reportId: string, categoryId: string, itemId: string) => {
-    setReports((prev) => {
-      const next = prev.map((r) => {
-        if (r.id !== reportId) return r;
-        const updated = {
-          ...r,
-          categories: r.categories.map((c) =>
-            c.id === categoryId ? { ...c, items: c.items.filter((i) => i.id !== itemId) } : c
-          ),
-          updatedAt: new Date().toISOString(),
-        };
-        setActiveReport((a) => (a?.id === reportId ? updated : a));
-        return updated;
-      });
-      AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-      return next;
-    });
-  }, []);
+    mutate((prev) =>
+      prev.map((r) =>
+        r.id === reportId
+          ? {
+              ...r,
+              categories: r.categories.map((c) =>
+                c.id === categoryId
+                  ? { ...c, items: c.items.filter((i) => i.id !== itemId) }
+                  : c
+              ),
+              updatedAt: new Date().toISOString(),
+            }
+          : r
+      )
+    );
+  }, [mutate]);
 
   return (
     <ChecklistContext.Provider
