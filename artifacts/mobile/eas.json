@@ -6,7 +6,8 @@
   "build": {
     "base": {
       "node": "22",
-      "pnpm": "10.26.1"
+      "pnpm": "10.26.1",
+      "installCommand": "pnpm install --no-frozen-lockfile"
     },
     "development": {
       "extends": "base",
